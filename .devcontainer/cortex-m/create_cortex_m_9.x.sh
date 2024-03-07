@@ -48,10 +48,6 @@ pip install --upgrade -r requirements-doc.txt
 echo -e "[on-create.sh] installing pre-commit"
 pre-commit install
 
-
-echo -e "[on-create.sh] fetching tags"
-make fetch-tags
-
 # create cross-compiler
 echo -e "[on-create.sh] building mpy-cross"
 make -j $(nproc) -C mpy-cross                   # time: about 36 sec
