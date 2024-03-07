@@ -6,6 +6,9 @@
 #
 # -----------------------------------------------------------------------------
 
+echo -e "[on-create.sh] starting postCreateCommand"
+exit 0
+
 # --- tooling   --------------------------------------------------------------
 
 echo -e "[on-create.sh] downloading and installing gcc-arm-non-eabi toolchain"
