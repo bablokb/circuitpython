@@ -4,7 +4,7 @@
 	"name": "CircuitPython Cortex-M Build-Environment (base: Default Linux Universal)",
 	"image": "mcr.microsoft.com/devcontainers/universal:2",
 	"postCreateCommand": ".devcontainer/cortex-m/create_cortex_m_9.x.sh",
-	//"remoteEnv": { "PATH": "/workspaces/gcc-arm-none-eabi/bin:${containerEnv:PATH}" }
+	"remoteEnv": { "PATH": "/workspaces/gcc-arm-none-eabi/bin:${containerEnv:PATH}" }
 
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	// "features": {},
