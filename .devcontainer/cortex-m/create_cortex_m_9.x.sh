@@ -7,12 +7,25 @@
 # -----------------------------------------------------------------------------
 
 echo -e "[on-create.sh] starting postCreateCommand"
-exit 0
+echo -e "[on-create.sh] PWD=$PWD"
+
+echo -e "[on-create.sh] ------------------------------------------------"
+git tag
+git describe --first-parent --dirty --tags --match "[1-9].*"
+git rev-parse --short HEAD
+echo -e "[on-create.sh] ------------------------------------------------"
+make fetch-tags > fetch-tags.log
+echo -e "[on-create.sh] ------------------------------------------------"
+git tag
+git describe --first-parent --dirty --tags --match "[1-9].*"
+git rev-parse --short HEAD
+echo -e "[on-create.sh] ------------------------------------------------"
 
 # --- tooling   --------------------------------------------------------------
 
 echo -e "[on-create.sh] downloading and installing gcc-arm-non-eabi toolchain"
 cd /workspaces
+echo -e "[on-create.sh] PWD=$PWD"
 
 wget -qO gcc-arm-none-eabi.tar.xz \
   https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel/arm-gnu-toolchain-13.2.rel1-x86_64-arm-none-eabi.tar.xz
@@ -42,6 +55,8 @@ rm -fr dosfstools-4.2 dosfstools-4.2.tar.gz
 # --- circuitpython setup   --------------------------------------------------
 
 cd circuitpython
+echo -e "[on-create.sh] PWD=$PWD"
+
 # additional python requirements
 echo -e "[on-create.sh] pip-installing requirements"
 pip install --upgrade -r requirements-dev.txt
@@ -51,9 +66,18 @@ pip install --upgrade -r requirements-doc.txt
 echo -e "[on-create.sh] installing pre-commit"
 pre-commit install
 
+echo -e "[on-create.sh] ------------------------------------------------"
+git tag
+git describe --first-parent --dirty --tags --match "[1-9].*"
+git rev-parse --short HEAD
+echo -e "[on-create.sh] ------------------------------------------------"
+
 # create cross-compiler
 echo -e "[on-create.sh] building mpy-cross"
-make -j $(nproc) -C mpy-cross                   # time: about 36 sec
+if ! make -j $(nproc) -C mpy-cross; then                   # time: about 36 sec
+  echo -e "[on-create.sh] make mpy-cross failed"
+  exit 3
+fi
 
 # --- port specific submodules   ---------------------------------------------
 
