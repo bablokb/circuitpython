@@ -10,13 +10,13 @@ echo -e "[on-create.sh] starting postCreateCommand"
 echo -e "[on-create.sh] PWD=$PWD"
 
 echo -e "[on-create.sh] ------------------------------------------------"
-git tag
+git --no-pager tag
 git describe --first-parent --dirty --tags --match "[1-9].*"
 git rev-parse --short HEAD
 echo -e "[on-create.sh] ------------------------------------------------"
 make fetch-tags > fetch-tags.log
 echo -e "[on-create.sh] ------------------------------------------------"
-git tag
+git --no-pager tag
 git describe --first-parent --dirty --tags --match "[1-9].*"
 git rev-parse --short HEAD
 echo -e "[on-create.sh] ------------------------------------------------"
@@ -67,7 +67,7 @@ echo -e "[on-create.sh] installing pre-commit"
 pre-commit install
 
 echo -e "[on-create.sh] ------------------------------------------------"
-git tag
+git --no-pager tag
 git describe --first-parent --dirty --tags --match "[1-9].*"
 git rev-parse --short HEAD
 echo -e "[on-create.sh] ------------------------------------------------"
