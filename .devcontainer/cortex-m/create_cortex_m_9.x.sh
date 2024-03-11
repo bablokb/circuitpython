@@ -10,16 +10,36 @@ echo -e "[on-create.sh] starting postCreateCommand"
 echo -e "[on-create.sh] PWD=$PWD"
 
 echo -e "[on-create.sh] ------------------------------------------------"
+cp -a .git .git.before-fetch-tags
+
+echo -e "[on-create.sh] git --no-pager tag   ---------------------------"
 git --no-pager tag
+
+echo -e "[on-create.sh] git describe   ---------------------------------"
 git describe --first-parent --dirty --tags --match "[1-9].*"
+
+echo -e "[on-create.sh] git rev-parse   --------------------------------"
 git rev-parse --short HEAD
-echo -e "[on-create.sh] ------------------------------------------------"
+
+echo -e "[on-create.sh] make fetch-tags   ------------------------------"
 make fetch-tags > fetch-tags.log
+
 echo -e "[on-create.sh] ------------------------------------------------"
+cp -a .git .git.after-fetch-tags
+
+echo -e "[on-create.sh] git --no-pager tag   ---------------------------"
 git --no-pager tag
+
+echo -e "[on-create.sh] git describe   ---------------------------------"
 git describe --first-parent --dirty --tags --match "[1-9].*"
+
+echo -e "[on-create.sh] git rev-parse   --------------------------------"
 git rev-parse --short HEAD
+
 echo -e "[on-create.sh] ------------------------------------------------"
+
+# just exit here for now
+exit 0
 
 # --- tooling   --------------------------------------------------------------
 
