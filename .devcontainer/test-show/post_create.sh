@@ -9,6 +9,7 @@
 echo -e "[post_create.sh] starting postCreateCommand\n"
 echo -e "[post_create.sh] PWD=$PWD\n"
 
+git --no-pager status
 git --no-pager show --summary
 
 # --- that's it!   ------------------------------------------------------------
