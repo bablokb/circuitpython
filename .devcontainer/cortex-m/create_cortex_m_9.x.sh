@@ -7,45 +7,11 @@
 # -----------------------------------------------------------------------------
 
 echo -e "[on-create.sh] starting postCreateCommand"
-echo -e "[on-create.sh] PWD=$PWD"
-
-echo -e "[on-create.sh] ------------------------------------------------"
-cp -a .git .git.before-fetch-tags
-
-echo -e "[on-create.sh] git --no-pager tag   ---------------------------"
-git --no-pager tag
-
-echo -e "[on-create.sh] git describe   ---------------------------------"
-git describe --first-parent --dirty --tags --match "[1-9].*"
-
-echo -e "[on-create.sh] git rev-parse   --------------------------------"
-git rev-parse --short HEAD
-
-echo -e "[on-create.sh] make fetch-tags   ------------------------------"
-make fetch-tags > fetch-tags.log
-
-echo -e "[on-create.sh] ------------------------------------------------"
-cp -a .git .git.after-fetch-tags
-
-echo -e "[on-create.sh] git --no-pager tag   ---------------------------"
-git --no-pager tag
-
-echo -e "[on-create.sh] git describe   ---------------------------------"
-git describe --first-parent --dirty --tags --match "[1-9].*"
-
-echo -e "[on-create.sh] git rev-parse   --------------------------------"
-git rev-parse --short HEAD
-
-echo -e "[on-create.sh] ------------------------------------------------"
-
-# just exit here for now
-exit 0
 
 # --- tooling   --------------------------------------------------------------
 
 echo -e "[on-create.sh] downloading and installing gcc-arm-non-eabi toolchain"
 cd /workspaces
-echo -e "[on-create.sh] PWD=$PWD"
 
 wget -qO gcc-arm-none-eabi.tar.xz \
   https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel/arm-gnu-toolchain-13.2.rel1-x86_64-arm-none-eabi.tar.xz
@@ -86,13 +52,8 @@ pip install --upgrade -r requirements-doc.txt
 echo -e "[on-create.sh] installing pre-commit"
 pre-commit install
 
-echo -e "[on-create.sh] ------------------------------------------------"
-git --no-pager tag
-git describe --first-parent --dirty --tags --match "[1-9].*"
-git rev-parse --short HEAD
-echo -e "[on-create.sh] ------------------------------------------------"
-
 # create cross-compiler
+make fetch-tags
 echo -e "[on-create.sh] building mpy-cross"
 if ! make -j $(nproc) -C mpy-cross; then                   # time: about 36 sec
   echo -e "[on-create.sh] make mpy-cross failed"
