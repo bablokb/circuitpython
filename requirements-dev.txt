@@ -12,6 +12,7 @@ requests-cache
 
 # For translate check
 polib
+huffman
 
 # For pre-commit
 black
