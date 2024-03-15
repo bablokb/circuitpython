@@ -11,11 +11,11 @@ echo -e "[post_create.sh] PWD=$PWD\n"
 
 cat >> $HOME/.bashrc <<"EOF"
 
-if [ ! -f /workspaces/toolchain_setup.log ]; then
+if [ -t 1 -a ! -f /workspaces/toolchain_setup.log ]; then
   (echo "TOOLCHAIN=$TOOLCHAIN"
    echo "PORT=$PORT"
    tools/describe
-   git --no-pager show --no-color --pretty=oneline --decorate
+   git --no-pager show --summary --no-color --pretty=short --decorate
   ) | tee /workspaces/toolchain_setup.log
 fi
 EOF
