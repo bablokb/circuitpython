@@ -12,6 +12,10 @@ echo -e "[post_create.sh] PWD=$PWD\n"
 echo -e \
   "\n/workspaces/circuitpython/.devcontainer/install_build_env.sh" >> $HOME/.bashrc
 
+# wait a few seconds to make sure any initial terminals are started
+sleep 10
+touch /workspaces/post_create.finished
+
 # --- that's it!   ------------------------------------------------------------
 
 echo -e "[post_create.sh] setup complete\n"

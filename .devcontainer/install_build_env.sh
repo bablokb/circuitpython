@@ -29,6 +29,9 @@ echo -e "[install_build_env.sh] starting install"
 if [ ! -t 1 ]; then
   # not connected to a terminal
   exit 0
+elif [ ! -f /workspaces/post_create.finished ]; then
+  # initial setup of container not finished
+  exit 0
 elif [ -f /workspaces/install_build_env.log ]; then
   # setup already done
   echo "CircuitPython build-environment ready for $TOOLCHAIN/$PORT"
