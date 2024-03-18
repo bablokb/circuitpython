@@ -45,3 +45,8 @@ fi
 "$REPO_ROOT/.devcontainer/make-mpy-cross.sh" || exit 3
 "$REPO_ROOT/.devcontainer/fetch-port-submodules.sh"
 ) | tee /workspaces/install_build_env.log
+
+echo -e "========================================================================"
+echo -e "\nSetup complete!"
+echo -e "Please exit this terminal. Create a new terminal to build CircuitPython!\n"
+echo -e "========================================================================"
