@@ -11,6 +11,7 @@
 REPO_ROOT="/workspaces/circuitpython"
 
 echo -e "[common_tools.sh] starting install"
+cd "$REPO_ROOT"
 
 # --- repositories and tools   ------------------------------------------------
 
@@ -31,8 +32,6 @@ tar -xzf dosfstools-4.2.tar.gz
 rm -fr dosfstools-4.2 dosfstools-4.2.tar.gz
 
 # --- circuitpython setup   --------------------------------------------------
-
-cd "$REPO_ROOT"
 
 # additional python requirements
 echo -e "[common_tools.sh] pip-installing requirements"
