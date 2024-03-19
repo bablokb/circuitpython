@@ -58,7 +58,7 @@ echo -e "[install_build_env.sh] starting install"
 "$REPO_ROOT/.devcontainer/$CP_TOOLCHAIN-toolchain.sh" || exit 3
 "$REPO_ROOT/.devcontainer/make-mpy-cross.sh" || exit 3
 echo -e "Setup complete!\nStart a new terminal and build CircuitPython!\n"
-) | tee /workspaces/install_build_env.log.active
+) |& tee /workspaces/install_build_env.log.active
 
 echo -e "[install_build_env.sh] Setup complete!"
 exit 0
