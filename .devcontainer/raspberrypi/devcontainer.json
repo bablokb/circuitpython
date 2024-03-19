@@ -1,9 +1,9 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
 // README at: https://github.com/devcontainers/templates/tree/main/src/universal
 {
-	"name": "Test bashrc",
+	"name": "raspberrypi",
 	"image": "mcr.microsoft.com/devcontainers/universal:2",
-	"postCreateCommand": ".devcontainer/test-bashrc/post_create.sh",
+	"postCreateCommand": ".devcontainer/post_create.sh",
 	"remoteEnv": { "CP_TOOLCHAIN": "cortex-m",
                       "CP_PORT": "raspberrypi" }
 
