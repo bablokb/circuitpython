@@ -39,4 +39,4 @@ esp-idf/install.sh
 
 echo -e "[esp-idf-toolchain.sh] update environment in .bashrc"
 
-echo -e "\nsource $REPO_ROOT/esp-idf/export.sh > /dev/null\n" >> "$HOME"/.bashrc
+echo -e "\nsource $REPO_ROOT/ports/espressif/esp-idf/export.sh > /dev/null\n" >> "$HOME"/.bashrc
