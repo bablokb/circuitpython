@@ -16,14 +16,16 @@ if [ -f /workspaces/install_build_env.log ]; then
   echo "CircuitPython build-environment ready for $TOOLCHAIN/$PORT"
   echo "To start a build run:"
   echo "  cd ports/$PORT"
-  echo "  time make -j $(nproc) BOARD=pimoroni_badger2040w TRANSLATION=de_DE"
+  echo "  time make -j $(nproc) BOARD=your_board_name TRANSLATION=de_DE"
 elif [ -f /workspaces/install_build_env.log.active ]; then
-  echo "initial setup of build environment in progress, please wait"
-  echo "use 'tail -f /workspaces/install_build_env.log.active' to monitor progress"
+  echo "Initial setup of build environment in progress, please wait."
+  echo "Use 'tail -f /workspaces/install_build_env.log.active' to monitor progress."
+  echo "After successful installation, start a new terminal to build CircuitPython."
 else
-  echo "starting initial setup of build environment, please wait"
+  echo "Starting initial setup of build environment, please wait"
   nohup /workspaces/circuitpython/.devcontainer/install_build_env.sh >> $HOME/nohup.out &
-  echo "use 'tail -f /workspaces/install_build_env.log.active' to monitor progress"
+  echo "Use 'tail -f /workspaces/install_build_env.log.active' to monitor progress."
+  echo "After successful installation, start a new terminal to build CircuitPython."
 fi
 
 EOF
