@@ -4,8 +4,8 @@
 	"name": "Test bashrc",
 	"image": "mcr.microsoft.com/devcontainers/universal:2",
 	"postCreateCommand": ".devcontainer/test-bashrc/post_create.sh",
-	"remoteEnv": { "TOOLCHAIN": "cortex-m",
-                       "PORT": "raspberrypi" }
+	"remoteEnv": { "CP_TOOLCHAIN": "cortex-m",
+                      "CP_PORT": "raspberrypi" }
 
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	// "features": {},

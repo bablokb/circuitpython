@@ -13,9 +13,9 @@ cat >> $HOME/.bashrc << "EOF"
 
 if [ -f /workspaces/install_build_env.log ]; then
   # setup already done
-  echo "CircuitPython build-environment ready for $TOOLCHAIN/$PORT"
+  echo "CircuitPython build-environment ready for $CP_TOOLCHAIN/$CP_PORT"
   echo "To start a build run:"
-  echo "  cd ports/$PORT"
+  echo "  cd ports/$CP_PORT"
   echo "  time make -j $(nproc) BOARD=your_board_name TRANSLATION=de_DE"
 elif [ -f /workspaces/install_build_env.log.active ]; then
   echo "Initial setup of build environment in progress, please wait."

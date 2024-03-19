@@ -10,7 +10,7 @@
 # This has the added benefit that they can be called independently later again
 # if necessary.
 #
-# The scripts expect the environment-variables TOOLCHAIN and PORT to be set
+# The scripts expect the environment-variables CP_TOOLCHAIN and CP_PORT to be set
 # to valid values. This is normally done from within
 #   .devcontainer/<port>/devcontainer.json
 #
@@ -53,7 +53,7 @@ echo -e "[install_build_env.sh] starting install"
 
 # --- delegate install steps to other scripts   -------------------------------
 (
-"$REPO_ROOT/.devcontainer/$TOOLCHAIN-toolchain.sh" || exit 3
+"$REPO_ROOT/.devcontainer/$CP_TOOLCHAIN-toolchain.sh" || exit 3
 "$REPO_ROOT/.devcontainer/common_tools.sh" || exit 3
 "$REPO_ROOT/.devcontainer/make-mpy-cross.sh" || exit 3
 "$REPO_ROOT/.devcontainer/fetch-port-submodules.sh"
