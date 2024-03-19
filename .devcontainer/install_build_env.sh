@@ -54,8 +54,8 @@ echo -e "[install_build_env.sh] starting install"
 # --- delegate install steps to other scripts   -------------------------------
 (
 "$REPO_ROOT/.devcontainer/fetch-port-submodules.sh" || exit 3
-"$REPO_ROOT/.devcontainer/$CP_TOOLCHAIN-toolchain.sh" || exit 3
 "$REPO_ROOT/.devcontainer/common_tools.sh" || exit 3
+"$REPO_ROOT/.devcontainer/$CP_TOOLCHAIN-toolchain.sh" || exit 3
 "$REPO_ROOT/.devcontainer/make-mpy-cross.sh" || exit 3
 echo -e "Setup complete!\nStart a new terminal and build CircuitPython!\n"
 ) | tee /workspaces/install_build_env.log.active
