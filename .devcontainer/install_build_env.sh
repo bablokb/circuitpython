@@ -4,7 +4,7 @@
 #
 # Normally, this should run directly as postCreateCommand during container
 # creation. Due to an unresolved bug on how Github-codespaces creates a clone,
-# this script is run from $HOME/.bashrc instead.
+# this script is started from $HOME/.bashrc instead.
 #
 # The script delegates parts to other scripts for reuse across toolchains.
 # This has the added benefit that they can be called independently later again
@@ -17,39 +17,47 @@
 # Author: Bernhard Bablok
 #
 # -----------------------------------------------------------------------------
-
 REPO_ROOT="/workspaces/circuitpython"
+
+# --- install exit-handler for cleanup   --------------------------------------
+
+on_exit() {
+  rc=$?
+  if [ -f /workspaces/install_build_env.log.active ]; then
+    mv /workspaces/install_build_env.log.active /workspaces/install_build_env.log
+  fi
+  rm -rf /tmp/install_build_env
+  exit $rc
+}
+
+# --- test prerequisites for installation   ------------------------------------
+
+while ! test -f /workspaces/post_create.finished; do
+  echo -e "[install_build_env.sh] waiting for /workspaces/post_create.finished ..."
+  sleep 1
+done
+
+if [ -f /workspaces/install_build_env.log ]; then
+  echo -e "[install_build_env.sh] installation already done"
+  exit 0
+elif ! mkdir /tmp/install_build_env 2>/dev/null; then
+  # mkdir is atomic, so we know we are already running
+  echo -e "[install_build_env.sh] install already running with PID $(cat /tmp/install_build_env/pid.txt)"
+  exit 0
+else
+  echo -e "$$" > /tmp/install_build_env/pid.txt
+  trap 'on_exit' EXIT
+fi
 
 echo -e "[install_build_env.sh] starting install"
 
-# only run when
-#   - connected to a terminal
-#   - we did not already run
-
-if [ ! -t 1 ]; then
-  # not connected to a terminal
-  exit 0
-elif [ ! -f /workspaces/post_create.finished ]; then
-  # initial setup of container not finished
-  exit 0
-elif [ -f /workspaces/install_build_env.log ]; then
-  # setup already done
-  echo "CircuitPython build-environment ready for $TOOLCHAIN/$PORT"
-  echo "To start a build run:"
-  echo "  cd ports/$PORT"
-  echo "  time make -j $(nproc) BOARD=pimoroni_badger2040w TRANSLATION=de_DE"
-  exit 0
-fi
-
-# delegate install steps to other scripts
+# --- delegate install steps to other scripts   -------------------------------
 (
 "$REPO_ROOT/.devcontainer/$TOOLCHAIN-toolchain.sh" || exit 3
 "$REPO_ROOT/.devcontainer/common_tools.sh" || exit 3
 "$REPO_ROOT/.devcontainer/make-mpy-cross.sh" || exit 3
 "$REPO_ROOT/.devcontainer/fetch-port-submodules.sh"
-) | tee /workspaces/install_build_env.log
+) | tee /workspaces/install_build_env.log.active
 
-echo -e "========================================================================"
-echo -e "\nSetup complete!"
-echo -e "Please exit this terminal. Create a new terminal to build CircuitPython!\n"
-echo -e "========================================================================"
+echo -e "[install_build_env.sh] Setup complete!"
+exit 0
