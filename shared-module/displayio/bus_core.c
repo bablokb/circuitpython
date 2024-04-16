@@ -129,12 +129,12 @@ void displayio_display_bus_set_region_to_update(displayio_display_bus_t *self, d
 
     // Set column.
     displayio_display_bus_begin_transaction(self);
-    uint8_t data[5];
+    uint8_t data[9];
     data[0] = self->column_command;
     uint8_t data_length = 1;
     display_byte_type_t data_type = DISPLAY_DATA;
     if (!self->data_as_commands) {
-        self->send(self->bus, DISPLAY_COMMAND, CHIP_SELECT_UNTOUCHED, data, 1);
+        self->send(self->bus, DISPLAY_COMMAND, CHIP_SELECT_TOGGLE_EVERY_BYTE, data, 1);
         data_length = 0;
     } else {
         data_type = DISPLAY_COMMAND;
@@ -148,9 +148,13 @@ void displayio_display_bus_set_region_to_update(displayio_display_bus_t *self, d
             x1 = __builtin_bswap16(x1);
             x2 = __builtin_bswap16(x2);
         }
+        data[data_length++] = 0;
         data[data_length++] = x1 >> 8;
+        data[data_length++] = 0;
         data[data_length++] = x1 & 0xff;
+        data[data_length++] = 0;
         data[data_length++] = x2 >> 8;
+        data[data_length++] = 0;
         data[data_length++] = x2 & 0xff;
     }
 
@@ -180,7 +184,7 @@ void displayio_display_bus_set_region_to_update(displayio_display_bus_t *self, d
     data[0] = self->row_command;
     data_length = 1;
     if (!self->data_as_commands) {
-        self->send(self->bus, DISPLAY_COMMAND, CHIP_SELECT_UNTOUCHED, data, 1);
+        self->send(self->bus, DISPLAY_COMMAND, CHIP_SELECT_TOGGLE_EVERY_BYTE, data, 1);
         data_length = 0;
     }
 
@@ -192,9 +196,13 @@ void displayio_display_bus_set_region_to_update(displayio_display_bus_t *self, d
             y1 = __builtin_bswap16(y1);
             y2 = __builtin_bswap16(y2);
         }
+        data[data_length++] = 0;
         data[data_length++] = y1 >> 8;
+        data[data_length++] = 0;
         data[data_length++] = y1 & 0xff;
+        data[data_length++] = 0;
         data[data_length++] = y2 >> 8;
+        data[data_length++] = 0;
         data[data_length++] = y2 & 0xff;
     }
 
