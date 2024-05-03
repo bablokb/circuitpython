@@ -152,7 +152,8 @@ CFLAGS += \
 	-DESP_PLATFORM=1 \
 	-DMBEDTLS_CONFIG_FILE=\"mbedtls/esp_config.h\" \
 	-DMBEDTLS_PADLOCK_FILE=\"ports/espressif/esp-idf/components/mbedtls/mbedtls/library/padlock.h\" \
-	-DUNITY_INCLUDE_CONFIG_H -DWITH_POSIX
+	-DUNITY_INCLUDE_CONFIG_H -DWITH_POSIX \
+	-DMP3DEC_GENERIC
 
 # Make our canary value match FreeRTOS's
 # This define is in FreeRTOS as tskSTACK_FILL_BYTE 0xa5U which we expand out to a full word.
@@ -260,22 +261,34 @@ LIBS += -lm
 endif
 
 # TinyUSB defines
-ifeq ($(CIRCUITPY_USB),1)
-ifeq ($(IDF_TARGET),esp32s2)
+# Always add these because we might be doing host.
+ifeq ($(IDF_TARGET),esp32)
+CFLAGS += -DCFG_TUSB_MCU=OPT_MCU_ESP32
+else ifeq ($(IDF_TARGET),esp32c3)
+CFLAGS += -DCFG_TUSB_MCU=OPT_MCU_ESP32C3
+else ifeq ($(IDF_TARGET),esp32c6)
+CFLAGS += -DCFG_TUSB_MCU=OPT_MCU_ESP32C6
+else ifeq ($(IDF_TARGET),esp32h2)
+CFLAGS += -DCFG_TUSB_MCU=OPT_MCU_ESP32H2
+else ifeq ($(IDF_TARGET),esp32s2)
 CFLAGS += -DCFG_TUSB_MCU=OPT_MCU_ESP32S2
 else ifeq ($(IDF_TARGET),esp32s3)
 CFLAGS += -DCFG_TUSB_MCU=OPT_MCU_ESP32S3
 endif
+ifeq ($(CIRCUITPY_TINYUSB),1)
 CFLAGS += \
 	-DCFG_TUSB_OS=OPT_OS_FREERTOS \
+	-DCFG_TUD_TASK_QUEUE_SZ=32
+endif
+ifeq ($(CIRCUITPY_USB_DEVICE),1)
+CFLAGS += \
 	-DCFG_TUD_CDC_RX_BUFSIZE=1024 \
 	-DCFG_TUD_CDC_TX_BUFSIZE=1024 \
 	-DCFG_TUD_MSC_BUFSIZE=4096 \
 	-DCFG_TUD_MIDI_RX_BUFSIZE=128 \
 	-DCFG_TUD_MIDI_TX_BUFSIZE=128 \
 	-DCFG_TUD_VENDOR_RX_BUFSIZE=128 \
-	-DCFG_TUD_VENDOR_TX_BUFSIZE=128 \
-	-DCFG_TUD_TASK_QUEUE_SZ=32
+	-DCFG_TUD_VENDOR_TX_BUFSIZE=128
 endif
 
 ######################################
@@ -291,7 +304,9 @@ SRC_C += \
 	peripherals/i2c.c \
 	peripherals/$(IDF_TARGET)/pins.c
 
+ifeq ($(CIRCUITPY_SSL),1)
 SRC_C += lib/mbedtls_config/crt_bundle.c
+endif
 
 SRC_C += $(wildcard common-hal/espidf/*.c)
 
@@ -303,7 +318,7 @@ ifneq ($(CIRCUITPY_TOUCHIO_USE_NATIVE),0)
 SRC_C += peripherals/touch.c
 endif
 
-ifneq ($(CIRCUITPY_USB),0)
+ifneq ($(CIRCUITPY_USB_DEVICE),0)
 SRC_C += lib/tinyusb/src/portable/espressif/esp32sx/dcd_esp32sx.c
 endif
 
@@ -390,7 +405,7 @@ TARGET_SDKCONFIG = esp-idf-config/sdkconfig-$(IDF_TARGET).defaults
 ifeq ($(CIRCUITPY_ESP_FLASH_SIZE), 2MB)
 	FLASH_SIZE_SDKCONFIG ?= esp-idf-config/sdkconfig-flash-$(CIRCUITPY_ESP_FLASH_SIZE)-no-ota-no-uf2.defaults
 else
-UF2_BOOTLOADER ?= $(CIRCUITPY_USB)
+UF2_BOOTLOADER ?= $(CIRCUITPY_USB_DEVICE)
 ifeq ($(UF2_BOOTLOADER), 1)
 	FLASH_SIZE_SDKCONFIG ?= esp-idf-config/sdkconfig-flash-$(CIRCUITPY_ESP_FLASH_SIZE).defaults
 else
@@ -503,7 +518,7 @@ endif
 ifneq ($(CIRCUITPY_PARALLELDISPLAYBUS),0)
 	ESP_IDF_COMPONENTS_LINK += esp_lcd
 endif
-ifneq ($(CIRCUITPY_USB),0)
+ifneq ($(CIRCUITPY_USB_DEVICE),0)
 	ESP_IDF_COMPONENTS_LINK += usb
 endif
 
