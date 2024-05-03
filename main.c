@@ -58,7 +58,6 @@
 #include "supervisor/shared/tick.h"
 #include "supervisor/shared/traceback.h"
 #include "supervisor/shared/workflow.h"
-#include "supervisor/usb.h"
 #include "supervisor/workflow.h"
 #include "supervisor/shared/external_flash/external_flash.h"
 
@@ -115,8 +114,12 @@
 #include "supervisor/shared/status_bar.h"
 #endif
 
-#if CIRCUITPY_USB_HID
+#if CIRCUITPY_USB_DEVICE && CIRCUITPY_USB_HID
 #include "shared-module/usb_hid/__init__.h"
+#endif
+
+#if CIRCUITPY_TINYUSB
+#include "supervisor/usb.h"
 #endif
 
 #if CIRCUITPY_WIFI
@@ -236,7 +239,7 @@ STATIC void stop_mp(void) {
 
     background_callback_reset();
 
-    #if CIRCUITPY_USB
+    #if CIRCUITPY_TINYUSB
     usb_background();
     #endif
 
@@ -299,7 +302,11 @@ STATIC bool maybe_run_list(const char *const *filenames, size_t n_filenames) {
     if (_current_executing_filename == NULL) {
         return false;
     }
-    mp_hal_stdout_tx_str(line_clear);
+
+    // This function is used for `boot.py` and is thus logged to `boot_out.txt`.
+    // We do not want the line clear to be logged.
+    // The function `serial_write` is the only function that isn't logged into the file.
+    serial_write(line_clear);
     mp_hal_stdout_tx_str(_current_executing_filename);
     serial_write_compressed(MP_ERROR_TEXT(" output:\n"));
 
@@ -425,7 +432,7 @@ STATIC void print_code_py_status_message(safe_mode_t safe_mode) {
     }
 }
 
-STATIC bool run_code_py(safe_mode_t safe_mode, bool *simulate_reset) {
+STATIC bool __attribute__((noinline)) run_code_py(safe_mode_t safe_mode, bool *simulate_reset) {
     bool serial_connected_at_start = serial_connected();
     bool printed_safe_mode_message = false;
     #if CIRCUITPY_AUTORELOAD_DELAY_MS > 0
@@ -462,7 +469,7 @@ STATIC bool run_code_py(safe_mode_t safe_mode, bool *simulate_reset) {
 
         start_mp(safe_mode);
 
-        #if CIRCUITPY_USB
+        #if CIRCUITPY_USB_DEVICE
         usb_setup_with_vm();
         #endif
 
@@ -841,7 +848,7 @@ STATIC void __attribute__ ((noinline)) run_boot_py(safe_mode_t safe_mode) {
 
     start_mp(safe_mode);
 
-    #if CIRCUITPY_USB
+    #if CIRCUITPY_USB_DEVICE
     // Set up default USB values after boot.py VM starts but before running boot.py.
     usb_set_defaults();
     #endif
@@ -926,7 +933,7 @@ STATIC int run_repl(safe_mode_t safe_mode) {
 
     start_mp(safe_mode);
 
-    #if CIRCUITPY_USB
+    #if CIRCUITPY_USB_DEVICE
     usb_setup_with_vm();
     #endif
 
@@ -1074,7 +1081,7 @@ int __attribute__((used)) main(void) {
     // By default our internal flash is readonly to local python code and
     // writable over USB. Set it here so that safemode.py or boot.py can change it.
     filesystem_set_internal_concurrent_write_protection(true);
-    filesystem_set_internal_writable_by_usb(CIRCUITPY_USB == 1);
+    filesystem_set_internal_writable_by_usb(CIRCUITPY_USB_DEVICE == 1);
 
     #if CIRCUITPY_SAFEMODE_PY
     // Run safemode.py if we ARE in safe mode.
@@ -1156,7 +1163,7 @@ void gc_collect(void) {
     common_hal_bleio_gc_collect();
     #endif
 
-    #if CIRCUITPY_USB_HID
+    #if CIRCUITPY_USB_DEVICE && CIRCUITPY_USB_HID
     usb_hid_gc_collect();
     #endif
 

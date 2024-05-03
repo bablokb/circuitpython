@@ -35,7 +35,10 @@
 #include "shared-module/displayio/__init__.h"
 #include "supervisor/shared/display.h"
 #include "supervisor/shared/tick.h"
+
+#if CIRCUITPY_TINYUSB
 #include "supervisor/usb.h"
+#endif
 
 #include <stdint.h>
 #include <string.h>
@@ -372,7 +375,7 @@ STATIC bool epaperdisplay_epaperdisplay_refresh_area(epaperdisplay_epaperdisplay
 
             // TODO(tannewt): Make refresh displays faster so we don't starve other
             // background tasks.
-            #if CIRCUITPY_USB
+            #if CIRCUITPY_TINYUSB
             usb_background();
             #endif
         }
@@ -403,7 +406,7 @@ STATIC bool _clean_area(epaperdisplay_epaperdisplay_obj_t *self) {
 
         // TODO(tannewt): Make refresh displays faster so we don't starve other
         // background tasks.
-        #if CIRCUITPY_USB
+        #if CIRCUITPY_TINYUSB
         usb_background();
         #endif
     }

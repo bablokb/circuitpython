@@ -26,7 +26,6 @@
  * THE SOFTWARE.
  */
 
-#include <math.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -43,14 +42,15 @@
 #include "supervisor/shared/bluetooth/bluetooth.h"
 #include "supervisor/shared/safe_mode.h"
 #include "supervisor/shared/tick.h"
-#include "supervisor/usb.h"
 #include "shared-bindings/_bleio/__init__.h"
 #include "shared-bindings/_bleio/Adapter.h"
 #include "shared-bindings/_bleio/Address.h"
 #include "shared-bindings/nvm/ByteArray.h"
 #include "shared-bindings/_bleio/Connection.h"
-#include "shared-bindings/_bleio/ScanEntry.h"
-#include "shared-bindings/time/__init__.h"
+
+#if CIRCUITPY_USB_DEVICE
+#include "supervisor/usb.h"
+#endif
 
 #if CIRCUITPY_OS_GETENV
 #include "shared-bindings/os/__init__.h"
@@ -381,7 +381,7 @@ void common_hal_bleio_adapter_set_enabled(bleio_adapter_obj_t *self, bool enable
         err_code = sd_softdevice_disable();
     }
 
-    #if CIRCUITPY_USB
+    #if CIRCUITPY_USB_DEVICE
     // Re-init USB hardware
     init_usb_hardware();
     #endif

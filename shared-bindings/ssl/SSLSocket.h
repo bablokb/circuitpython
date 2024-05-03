@@ -34,13 +34,14 @@
 
 extern const mp_obj_type_t ssl_sslsocket_type;
 
-ssl_sslsocket_obj_t *common_hal_ssl_sslsocket_accept(ssl_sslsocket_obj_t *self, uint8_t *ip, uint32_t *port);
-size_t common_hal_ssl_sslsocket_bind(ssl_sslsocket_obj_t *self, const char *host, size_t hostlen, uint32_t port);
+mp_obj_t common_hal_ssl_sslsocket_accept(ssl_sslsocket_obj_t *self);
+void common_hal_ssl_sslsocket_bind(ssl_sslsocket_obj_t *self, mp_obj_t addr);
 void common_hal_ssl_sslsocket_close(ssl_sslsocket_obj_t *self);
-void common_hal_ssl_sslsocket_connect(ssl_sslsocket_obj_t *self, const char *host, size_t hostlen, uint32_t port);
+void common_hal_ssl_sslsocket_connect(ssl_sslsocket_obj_t *self, mp_obj_t addr);
 bool common_hal_ssl_sslsocket_get_closed(ssl_sslsocket_obj_t *self);
 bool common_hal_ssl_sslsocket_get_connected(ssl_sslsocket_obj_t *self);
-bool common_hal_ssl_sslsocket_listen(ssl_sslsocket_obj_t *self, int backlog);
+void common_hal_ssl_sslsocket_listen(ssl_sslsocket_obj_t *self, int backlog);
 mp_uint_t common_hal_ssl_sslsocket_recv_into(ssl_sslsocket_obj_t *self, uint8_t *buf, uint32_t len);
 mp_uint_t common_hal_ssl_sslsocket_send(ssl_sslsocket_obj_t *self, const uint8_t *buf, uint32_t len);
-void common_hal_ssl_sslsocket_settimeout(ssl_sslsocket_obj_t *self, uint32_t timeout_ms);
+void common_hal_ssl_sslsocket_settimeout(ssl_sslsocket_obj_t *self, mp_obj_t timeout_obj);
+void common_hal_ssl_sslsocket_setsockopt(ssl_sslsocket_obj_t *self, mp_obj_t level, mp_obj_t optname, mp_obj_t optval);
