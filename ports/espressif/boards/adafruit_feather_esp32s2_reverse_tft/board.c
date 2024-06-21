@@ -13,7 +13,6 @@
 #include "shared-module/displayio/mipi_constants.h"
 #include "shared-bindings/board/__init__.h"
 
-fourwire_fourwire_obj_t board_display_obj;
 
 #define DELAY 0x80
 
@@ -102,10 +101,10 @@ void board_init(void) {
 
 bool espressif_board_reset_pin_number(gpio_num_t pin_number) {
     // Override the I2C/TFT power pin reset to prevent resetting the display.
-    if (pin_number == 21) {
+    if (pin_number == 7) {
         // Turn on TFT and I2C
-        gpio_set_direction(21, GPIO_MODE_DEF_OUTPUT);
-        gpio_set_level(21, true);
+        gpio_set_direction(pin_number, GPIO_MODE_DEF_OUTPUT);
+        gpio_set_level(pin_number, true);
         return true;
     }
     return false;
