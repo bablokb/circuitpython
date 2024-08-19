@@ -262,11 +262,12 @@ void *port_realloc(void *ptr, size_t size) {
     return tlsf_realloc(_heap, ptr, size);
 }
 
-static void max_size_walker(void *ptr, size_t size, int used, void *user) {
+static bool max_size_walker(void *ptr, size_t size, int used, void *user) {
     size_t *max_size = (size_t *)user;
     if (!used && *max_size < size) {
         *max_size = size;
     }
+    return true;
 }
 
 size_t port_heap_get_largest_free_size(void) {
@@ -510,8 +511,8 @@ void port_idle_until_interrupt(void) {
 /**
  * \brief Default interrupt handler for unused IRQs.
  */
-extern void HardFault_Handler(void); // provide a prototype to avoid a missing-prototypes diagnostic
-__attribute__((used)) void __not_in_flash_func(HardFault_Handler)(void) {
+extern void isr_hardfault(void); // provide a prototype to avoid a missing-prototypes diagnostic
+__attribute__((used)) void __not_in_flash_func(isr_hardfault)(void) {
     // Only safe mode from core 0 which is running CircuitPython. Core 1 faulting
     // should not be fatal to CP. (Fingers crossed.)
     if (get_core_num() == 0) {
