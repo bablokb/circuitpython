@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"PO-Revision-Date: 2024-08-10 14:09+0000\n"
+"PO-Revision-Date: 2024-08-28 18:09+0000\n"
 "Last-Translator: Andi Chandler <andi@gowling.com>\n"
 "Language-Team: none\n"
 "Language: en_GB\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.7-dev\n"
+"X-Generator: Weblate 5.7.1-dev\n"
 
 #: main.c
 msgid ""
@@ -1398,10 +1398,6 @@ msgstr "NVS Error"
 #: shared-bindings/socketpool/SocketPool.c
 msgid "Name or service not known"
 msgstr "Name or service not known"
-
-#: py/qstr.c
-msgid "Name too long"
-msgstr "Name too long"
 
 #: shared-bindings/displayio/TileGrid.c
 msgid "New bitmap must be same size as old bitmap"
@@ -3555,6 +3551,10 @@ msgstr "name '%q' is not defined"
 msgid "name not defined"
 msgstr "name not defined"
 
+#: py/qstr.c
+msgid "name too long"
+msgstr "name too long"
+
 #: py/persistentcode.c
 msgid "native code in .mpy unsupported"
 msgstr "native code in .mpy unsupported"
@@ -4393,6 +4393,9 @@ msgstr "zi must be of float type"
 #: extmod/ulab/code/scipy/signal/signal.c
 msgid "zi must be of shape (n_section, 2)"
 msgstr "zi must be of shape (n_section, 2)"
+
+#~ msgid "Name too long"
+#~ msgstr "Name too long"
 
 #~ msgid "Update Failed"
 #~ msgstr "Update failed"
