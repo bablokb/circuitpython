@@ -56,3 +56,36 @@ static inline uint32_t mult16signed(uint32_t val, int32_t mul) {
     return result;
     #endif
 }
+
+
+static inline uint32_t tounsigned8(uint32_t val) {
+    #if (defined(__ARM_ARCH_7EM__) && (__ARM_ARCH_7EM__ == 1))
+    return __UADD8(val, 0x80808080);
+    #else
+    return val ^ 0x80808080;
+    #endif
+}
+
+static inline uint32_t tounsigned16(uint32_t val) {
+    #if (defined(__ARM_ARCH_7EM__) && (__ARM_ARCH_7EM__ == 1))
+    return __UADD16(val, 0x80008000);
+    #else
+    return val ^ 0x80008000;
+    #endif
+}
+
+static inline uint32_t tosigned16(uint32_t val) {
+    #if (defined(__ARM_ARCH_7EM__) && (__ARM_ARCH_7EM__ == 1))
+    return __UADD16(val, 0x80008000);
+    #else
+    return val ^ 0x80008000;
+    #endif
+}
+
+static inline uint32_t unpack8(uint16_t val) {
+    return ((val & 0xff00) << 16) | ((val & 0x00ff) << 8);
+}
+
+static inline uint32_t pack8(uint32_t val) {
+    return ((val & 0xff000000) >> 16) | ((val & 0xff00) >> 8);
+}

@@ -1965,16 +1965,32 @@ msgstr ""
 msgid "The length of rgb_pins must be 6, 12, 18, 24, or 30"
 msgstr ""
 
+#: shared-module/audioeffects/Echo.c
+msgid "The sample's bits_per_sample does not match the effect's"
+msgstr ""
+
 #: shared-module/audiomixer/MixerVoice.c
 msgid "The sample's bits_per_sample does not match the mixer's"
+msgstr ""
+
+#: shared-module/audioeffects/Echo.c
+msgid "The sample's channel count does not match the effect's"
 msgstr ""
 
 #: shared-module/audiomixer/MixerVoice.c
 msgid "The sample's channel count does not match the mixer's"
 msgstr ""
 
+#: shared-module/audioeffects/Echo.c
+msgid "The sample's sample rate does not match the effect's"
+msgstr ""
+
 #: shared-module/audiomixer/MixerVoice.c
 msgid "The sample's sample rate does not match the mixer's"
+msgstr ""
+
+#: shared-module/audioeffects/Echo.c
+msgid "The sample's signedness does not match the effect's"
 msgstr ""
 
 #: shared-module/audiomixer/MixerVoice.c

@@ -23,6 +23,12 @@ typedef struct {
     uint32_t *buffer;
     uint32_t buffer_len; // buffer in bytes
 
+    uint32_t *sample_remaining_buffer;
+    uint32_t sample_buffer_length;
+
+    bool loop;
+    bool more_data;
+
     uint32_t *echo_buffer;
     uint32_t echo_buffer_len; // bytes
 
