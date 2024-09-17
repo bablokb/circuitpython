@@ -3,14 +3,14 @@
 // SPDX-FileCopyrightText: Copyright (c) 2024 Mark Komus
 //
 // SPDX-License-Identifier: MIT
-#include "shared-bindings/audioeffects/Echo.h"
+#include "shared-bindings/audiodelays/Echo.h"
 
 #include <stdint.h>
 #include "py/runtime.h"
-#include "effects_utils.h"
+#include "shared-module/audiomixer/utils.h"
 
 
-void common_hal_audioeffects_echo_construct(audioeffects_echo_obj_t *self, uint32_t delay_ms, mp_float_t decay, uint32_t buffer_size, uint8_t bits_per_sample,
+void common_hal_audiodelays_echo_construct(audiodelays_echo_obj_t *self, uint32_t delay_ms, mp_float_t decay, uint32_t buffer_size, uint8_t bits_per_sample,
     bool samples_signed, uint8_t channel_count, uint32_t sample_rate) {
 
     self->bits_per_sample = bits_per_sample;
@@ -22,7 +22,7 @@ void common_hal_audioeffects_echo_construct(audioeffects_echo_obj_t *self, uint3
     self->buffer_len = buffer_size;
     self->buffer = m_malloc(self->buffer_len);
     if (self->buffer == NULL) {
-        common_hal_audioeffects_echo_deinit(self);
+        common_hal_audiodelays_echo_deinit(self);
         m_malloc_fail(self->buffer_len);
     }
     memset(self->buffer, 0, self->buffer_len);
@@ -35,7 +35,7 @@ void common_hal_audioeffects_echo_construct(audioeffects_echo_obj_t *self, uint3
 
     self->echo_buffer = m_malloc(self->echo_buffer_len);
     if (self->echo_buffer == NULL) {
-        common_hal_audioeffects_echo_deinit(self);
+        common_hal_audiodelays_echo_deinit(self);
         m_malloc_fail(self->echo_buffer_len);
     }
     memset(self->echo_buffer, 0, self->echo_buffer_len);
@@ -52,15 +52,15 @@ void common_hal_audioeffects_echo_construct(audioeffects_echo_obj_t *self, uint3
     self->more_data = false;
 }
 
-bool common_hal_audioeffects_echo_deinited(audioeffects_echo_obj_t *self) {
+bool common_hal_audiodelays_echo_deinited(audiodelays_echo_obj_t *self) {
     if (self->echo_buffer == NULL) {
         return true;
     }
     return false;
 }
 
-void common_hal_audioeffects_echo_deinit(audioeffects_echo_obj_t *self) {
-    if (common_hal_audioeffects_echo_deinited(self)) {
+void common_hal_audiodelays_echo_deinit(audiodelays_echo_obj_t *self) {
+    if (common_hal_audiodelays_echo_deinited(self)) {
         return;
     }
     self->echo_buffer = NULL;
@@ -68,17 +68,17 @@ void common_hal_audioeffects_echo_deinit(audioeffects_echo_obj_t *self) {
 }
 
 
-uint32_t common_hal_audioeffects_echo_get_delay_ms(audioeffects_echo_obj_t *self) {
+uint32_t common_hal_audiodelays_echo_get_delay_ms(audiodelays_echo_obj_t *self) {
     return self->delay_ms;
 }
 
-void common_hal_audioeffects_echo_set_delay_ms(audioeffects_echo_obj_t *self, uint32_t delay_ms) {
+void common_hal_audiodelays_echo_set_delay_ms(audiodelays_echo_obj_t *self, uint32_t delay_ms) {
     self->delay_ms = delay_ms;
     self->echo_buffer_len = self->sample_rate / 1000.0f * self->delay_ms * (self->channel_count * (self->bits_per_sample / 8));
 
     self->echo_buffer = m_realloc(self->echo_buffer, self->echo_buffer_len);
     if (self->echo_buffer == NULL) {
-        common_hal_audioeffects_echo_deinit(self);
+        common_hal_audiodelays_echo_deinit(self);
         m_malloc_fail(self->echo_buffer_len);
     }
 
@@ -93,37 +93,37 @@ void common_hal_audioeffects_echo_set_delay_ms(audioeffects_echo_obj_t *self, ui
     }
 }
 
-mp_float_t common_hal_audioeffects_echo_get_decay(audioeffects_echo_obj_t *self) {
+mp_float_t common_hal_audiodelays_echo_get_decay(audiodelays_echo_obj_t *self) {
     return (mp_float_t)self->decay / (1 << 15);
 }
 
-void common_hal_audioeffects_echo_set_decay(audioeffects_echo_obj_t *self, mp_float_t decay) {
+void common_hal_audiodelays_echo_set_decay(audiodelays_echo_obj_t *self, mp_float_t decay) {
     self->decay = (uint16_t)(decay * (1 << 15));
 }
 
-uint32_t common_hal_audioeffects_echo_get_sample_rate(audioeffects_echo_obj_t *self) {
+uint32_t common_hal_audiodelays_echo_get_sample_rate(audiodelays_echo_obj_t *self) {
     return self->sample_rate;
 }
 
-uint8_t common_hal_audioeffects_echo_get_channel_count(audioeffects_echo_obj_t *self) {
+uint8_t common_hal_audiodelays_echo_get_channel_count(audiodelays_echo_obj_t *self) {
     return self->channel_count;
 }
 
-uint8_t common_hal_audioeffects_echo_get_bits_per_sample(audioeffects_echo_obj_t *self) {
+uint8_t common_hal_audiodelays_echo_get_bits_per_sample(audiodelays_echo_obj_t *self) {
     return self->bits_per_sample;
 }
 
-void audioeffects_echo_reset_buffer(audioeffects_echo_obj_t *self,
+void audiodelays_echo_reset_buffer(audiodelays_echo_obj_t *self,
     bool single_channel_output,
     uint8_t channel) {
 
 }
 
-bool common_hal_audioeffects_echo_get_playing(audioeffects_echo_obj_t *self) {
+bool common_hal_audiodelays_echo_get_playing(audiodelays_echo_obj_t *self) {
     return self->sample != NULL;
 }
 
-void common_hal_audioeffects_echo_play(audioeffects_echo_obj_t *self, mp_obj_t sample, bool loop) {
+void common_hal_audiodelays_echo_play(audiodelays_echo_obj_t *self, mp_obj_t sample, bool loop) {
     if (audiosample_sample_rate(sample) != self->sample_rate) {
         mp_raise_ValueError(MP_ERROR_TEXT("The sample's sample rate does not match the effect's"));
     }
@@ -153,14 +153,14 @@ void common_hal_audioeffects_echo_play(audioeffects_echo_obj_t *self, mp_obj_t s
     return;
 }
 
-void common_hal_audioeffects_echo_stop(audioeffects_echo_obj_t *self) {
+void common_hal_audiodelays_echo_stop(audiodelays_echo_obj_t *self) {
     self->sample = NULL;
     // memset(self->echo_buffer, 0, self->echo_buffer_len); // clear echo
     // memset(self->buffer, 0, self->buffer_len);
     return;
 }
 
-audioio_get_buffer_result_t audioeffects_echo_get_buffer(audioeffects_echo_obj_t *self, bool single_channel_output, uint8_t channel,
+audioio_get_buffer_result_t audiodelays_echo_get_buffer(audiodelays_echo_obj_t *self, bool single_channel_output, uint8_t channel,
     uint8_t **buffer, uint32_t *buffer_length) {
 
     uint32_t *word_buffer = (uint32_t *)self->buffer;
@@ -190,62 +190,81 @@ audioio_get_buffer_result_t audioeffects_echo_get_buffer(audioeffects_echo_obj_t
         // If we have no sample keep the echo echoing
         if (self->sample == NULL) {
             if (MP_LIKELY(self->bits_per_sample == 16)) {
-                if (MP_LIKELY(self->samples_signed)) {
-                    for (uint32_t i = 0; i < length; i++) {
-                        if (self->echo_buffer_read_pos >= echo_buf_len) {
-                            self->echo_buffer_read_pos = 0;
-                        }
+                // sample signed/unsigned won't matter as we have no sample
+                for (uint32_t i = 0; i < length; i++) {
+                    uint32_t echo = self->echo_buffer[self->echo_buffer_read_pos++];
+                    word_buffer[i] = mult16signed(echo, self->decay);
 
-                        uint32_t echo = self->echo_buffer[self->echo_buffer_read_pos++];
-                        word_buffer[i] = mult16signed(echo, self->decay);
+                    self->echo_buffer[self->echo_buffer_write_pos++] = word_buffer[i];
+                    if (self->echo_buffer_read_pos >= echo_buf_len) {
+                        self->echo_buffer_read_pos = 0;
+                    }
+                    if (self->echo_buffer_write_pos >= echo_buf_len) {
+                        self->echo_buffer_write_pos = 0;
+                    }
 
-                        if (self->echo_buffer_write_pos >= echo_buf_len) {
-                            self->echo_buffer_write_pos = 0;
-                        }
+                }
+            } else { // bits per sample is 8
+                uint16_t *hword_buffer = (uint16_t *)word_buffer;
+                uint16_t *echo_hsrc = (uint16_t *)self->echo_buffer;
+                for (uint32_t i = 0; i < length * 2; i++) {
+                    uint32_t echo_word = unpack8(echo_hsrc[i]);
+                    echo_word = mult16signed(echo_word, self->decay);
+                    hword_buffer[i] = pack8(echo_word);
 
-                        self->echo_buffer[self->echo_buffer_write_pos++] = word_buffer[i];
+                    echo_hsrc[self->echo_buffer_write_pos++] = hword_buffer[i];
+                    if (self->echo_buffer_read_pos >= echo_buf_len) {
+                        self->echo_buffer_read_pos = 0;
+                    }
+                    if (self->echo_buffer_write_pos >= echo_buf_len) {
+                        self->echo_buffer_write_pos = 0;
                     }
                 }
             }
             length = 0;
-        } else {
+        } else { // we have a sample
             uint32_t n = MIN(self->sample_buffer_length, length);
             uint32_t *sample_src = self->sample_remaining_buffer;
 
             if (MP_LIKELY(self->bits_per_sample == 16)) {
-                if (MP_LIKELY(self->samples_signed)) {
-                    for (uint32_t i = 0; i < n; i++) {
-                        uint32_t sample_word = sample_src[i];
-                        uint32_t echo = self->echo_buffer[self->echo_buffer_read_pos++];
-                        word_buffer[i] = add16signed(mult16signed(echo, self->decay), sample_word);
-                        self->echo_buffer[self->echo_buffer_write_pos++] = add16signed(sample_word, word_buffer[i]);
-
-                        if (self->echo_buffer_read_pos >= echo_buf_len) {
-                            self->echo_buffer_read_pos = 0;
-                        }
-                        if (self->echo_buffer_write_pos >= echo_buf_len) {
-                            self->echo_buffer_write_pos = 0;
-                        }
+                for (uint32_t i = 0; i < n; i++) {
+                    uint32_t sample_word = sample_src[i];
+                    if (MP_LIKELY(!self->samples_signed)) {
+                        sample_word = tosigned16(sample_word);
                     }
-                } else {
-                    // for (uint32_t i = 0; i < n; i++) {
-                    // uint32_t sample_word = sample_src[i];
-                    // sample_word = tosigned16(sample_word);
-                    // word_buffer[i] = add16signed(mult16signed(sample_word, self->decay), word_buffer[i]);
-                    // }
+                    uint32_t echo = self->echo_buffer[self->echo_buffer_read_pos++];
+                    word_buffer[i] = add16signed(mult16signed(echo, self->decay), sample_word);
+                    self->echo_buffer[self->echo_buffer_write_pos++] = word_buffer[i];
+
+                    if (self->echo_buffer_read_pos >= echo_buf_len) {
+                        self->echo_buffer_read_pos = 0;
+                    }
+                    if (self->echo_buffer_write_pos >= echo_buf_len) {
+                        self->echo_buffer_write_pos = 0;
+                    }
                 }
-            } else {
-                // uint16_t *hword_buffer = (uint16_t *)word_buffer;
-                // uint16_t *sample_hsrc = (uint16_t *)sample_src;
-                // for (uint32_t i = 0; i < n * 2; i++) {
-                // uint32_t sample_word = unpack8(sample_hsrc[i]);
-                // if (MP_LIKELY(!self->samples_signed)) {
-                // sample_word = tosigned16(sample_word);
-                // }
-                // sample_word = mult16signed(sample_word, self->decay);
-                // sample_word = add16signed(sample_word, unpack8(hword_buffer[i]));
-                // hword_buffer[i] = pack8(sample_word);
-                // }
+            } else { // bits per sample is 8
+                uint16_t *hword_buffer = (uint16_t *)word_buffer;
+                uint16_t *sample_hsrc = (uint16_t *)sample_src;
+                uint16_t *echo_hsrc = (uint16_t *)self->echo_buffer;
+                for (uint32_t i = 0; i < n * 2; i++) {
+                    uint32_t sample_word = unpack8(sample_hsrc[i]);
+                    uint32_t echo_word = unpack8(echo_hsrc[i]);
+                    if (MP_LIKELY(!self->samples_signed)) {
+                        sample_word = tosigned16(sample_word);
+                    }
+                    echo_word = mult16signed(echo_word, self->decay);
+                    sample_word = add16signed(sample_word, echo_word);
+                    hword_buffer[i] = pack8(sample_word);
+
+                    echo_hsrc[self->echo_buffer_write_pos++] = pack8(add16signed(sample_word, unpack8(hword_buffer[i])));
+                    if (self->echo_buffer_read_pos >= echo_buf_len) {
+                        self->echo_buffer_read_pos = 0;
+                    }
+                    if (self->echo_buffer_write_pos >= echo_buf_len) {
+                        self->echo_buffer_write_pos = 0;
+                    }
+                }
             }
 
             length -= n;
@@ -259,7 +278,7 @@ audioio_get_buffer_result_t audioeffects_echo_get_buffer(audioeffects_echo_obj_t
     return GET_BUFFER_MORE_DATA;
 }
 
-void audioeffects_echo_get_buffer_structure(audioeffects_echo_obj_t *self, bool single_channel_output,
+void audiodelays_echo_get_buffer_structure(audiodelays_echo_obj_t *self, bool single_channel_output,
     bool *single_buffer, bool *samples_signed, uint32_t *max_buffer_length, uint8_t *spacing) {
 
     if (self->sample != NULL) {

@@ -132,7 +132,7 @@ ifeq ($(CIRCUITPY_AUDIOCORE),1)
 SRC_PATTERNS += audiocore/%
 endif
 ifeq ($(CIRCUITPY_AUDIOEFFECTS),1)
-SRC_PATTERNS += audioeffects/%
+SRC_PATTERNS += audiodelays/%
 endif
 ifeq ($(CIRCUITPY_AUDIOMIXER),1)
 SRC_PATTERNS += audiomixer/%
@@ -620,8 +620,8 @@ SRC_SHARED_MODULE_ALL = \
 	audiocore/RawSample.c \
 	audiocore/WaveFile.c \
 	audiocore/__init__.c \
-	audioeffects/Echo.c \
-	audioeffects/__init__.c \
+	audiodelays/Echo.c \
+	audiodelays/__init__.c \
 	audioio/__init__.c \
 	audiomixer/Mixer.c \
 	audiomixer/MixerVoice.c \
@@ -862,7 +862,6 @@ $(filter $(SRC_PATTERNS), \
 	displayio/display_core.c \
 	os/getenv.c \
 	usb/utf16le.c \
-	audioeffects/effects_utils.c \
 )
 
 SRC_COMMON_HAL_INTERNAL = \

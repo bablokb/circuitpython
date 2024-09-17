@@ -1,9 +1,8 @@
 // This file is part of the CircuitPython project: https://circuitpython.org
 //
-// SPDX-FileCopyrightText: Copyright (c) 2024 Mark Komus
+// SPDX-FileCopyrightText: Copyright (c) 2018 Scott Shawcroft for Adafruit Industries, 2024 Mark Komus
 //
 // SPDX-License-Identifier: MIT
-
 
 __attribute__((always_inline))
 static inline uint32_t add16signed(uint32_t a, uint32_t b) {

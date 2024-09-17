@@ -6,8 +6,8 @@
 
 #include <stdint.h>
 
-#include "shared-bindings/audioeffects/Echo.h"
-#include "shared-module/audioeffects/Echo.h"
+#include "shared-bindings/audiodelays/Echo.h"
+#include "shared-module/audiodelays/Echo.h"
 
 #include "shared/runtime/context_manager_helpers.h"
 #include "py/binary.h"
@@ -20,7 +20,7 @@
 //| class Echo:
 //|     """An Echo effect"""
 //|
-static mp_obj_t audioeffects_echo_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *all_args) {
+static mp_obj_t audiodelays_echo_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *all_args) {
     enum { ARG_delay_ms, ARG_decay, ARG_buffer_size, ARG_sample_rate, ARG_bits_per_sample, ARG_samples_signed, ARG_channel_count, };
     static const mp_arg_t allowed_args[] = {
         { MP_QSTR_delay_ms, MP_ARG_INT | MP_ARG_KW_ONLY, {.u_int = 50 } },
@@ -49,8 +49,8 @@ static mp_obj_t audioeffects_echo_make_new(const mp_obj_type_t *type, size_t n_a
         mp_raise_ValueError(MP_ERROR_TEXT("bits_per_sample must be 8 or 16"));
     }
 
-    audioeffects_echo_obj_t *self = mp_obj_malloc(audioeffects_echo_obj_t, &audioeffects_echo_type);
-    common_hal_audioeffects_echo_construct(self, delay_ms, decay, args[ARG_buffer_size].u_int, bits_per_sample, args[ARG_samples_signed].u_bool, channel_count, sample_rate);
+    audiodelays_echo_obj_t *self = mp_obj_malloc(audiodelays_echo_obj_t, &audiodelays_echo_type);
+    common_hal_audiodelays_echo_construct(self, delay_ms, decay, args[ARG_buffer_size].u_int, bits_per_sample, args[ARG_samples_signed].u_bool, channel_count, sample_rate);
 
     return MP_OBJ_FROM_PTR(self);
 }
@@ -58,15 +58,15 @@ static mp_obj_t audioeffects_echo_make_new(const mp_obj_type_t *type, size_t n_a
 //|     def deinit(self) -> None:
 //|         """Deinitialises the Echo and releases any hardware resources for reuse."""
 //|         ...
-static mp_obj_t audioeffects_echo_deinit(mp_obj_t self_in) {
-    audioeffects_echo_obj_t *self = MP_OBJ_TO_PTR(self_in);
-    common_hal_audioeffects_echo_deinit(self);
+static mp_obj_t audiodelays_echo_deinit(mp_obj_t self_in) {
+    audiodelays_echo_obj_t *self = MP_OBJ_TO_PTR(self_in);
+    common_hal_audiodelays_echo_deinit(self);
     return mp_const_none;
 }
-static MP_DEFINE_CONST_FUN_OBJ_1(audioeffects_echo_deinit_obj, audioeffects_echo_deinit);
+static MP_DEFINE_CONST_FUN_OBJ_1(audiodelays_echo_deinit_obj, audiodelays_echo_deinit);
 
-static void check_for_deinit(audioeffects_echo_obj_t *self) {
-    if (common_hal_audioeffects_echo_deinited(self)) {
+static void check_for_deinit(audiodelays_echo_obj_t *self) {
+    if (common_hal_audiodelays_echo_deinited(self)) {
         raise_deinited_error();
     }
 }
@@ -80,61 +80,61 @@ static void check_for_deinit(audioeffects_echo_obj_t *self) {
 //|         """Automatically deinitializes the hardware when exiting a context. See
 //|         :ref:`lifetime-and-contextmanagers` for more info."""
 //|         ...
-static mp_obj_t audioeffects_echo_obj___exit__(size_t n_args, const mp_obj_t *args) {
+static mp_obj_t audiodelays_echo_obj___exit__(size_t n_args, const mp_obj_t *args) {
     (void)n_args;
-    common_hal_audioeffects_echo_deinit(args[0]);
+    common_hal_audiodelays_echo_deinit(args[0]);
     return mp_const_none;
 }
-static MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(audioeffects_echo___exit___obj, 4, 4, audioeffects_echo_obj___exit__);
+static MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(audiodelays_echo___exit___obj, 4, 4, audiodelays_echo_obj___exit__);
 
 
 //|     delay_ms: int
 //|     """Delay of the echo in microseconds. (read-only)"""
 //|
-static mp_obj_t audioeffects_echo_obj_get_delay_ms(mp_obj_t self_in) {
-    audioeffects_echo_obj_t *self = MP_OBJ_TO_PTR(self_in);
+static mp_obj_t audiodelays_echo_obj_get_delay_ms(mp_obj_t self_in) {
+    audiodelays_echo_obj_t *self = MP_OBJ_TO_PTR(self_in);
 
-    return mp_obj_new_float(common_hal_audioeffects_echo_get_delay_ms(self));
+    return mp_obj_new_float(common_hal_audiodelays_echo_get_delay_ms(self));
 
 }
-MP_DEFINE_CONST_FUN_OBJ_1(audioeffects_echo_get_delay_ms_obj, audioeffects_echo_obj_get_delay_ms);
+MP_DEFINE_CONST_FUN_OBJ_1(audiodelays_echo_get_delay_ms_obj, audiodelays_echo_obj_get_delay_ms);
 
-static mp_obj_t audioeffects_echo_obj_set_delay_ms(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
+static mp_obj_t audiodelays_echo_obj_set_delay_ms(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
     enum { ARG_delay_ms };
     static const mp_arg_t allowed_args[] = {
         { MP_QSTR_delay_ms, MP_ARG_INT | MP_ARG_REQUIRED, {} },
     };
-    audioeffects_echo_obj_t *self = MP_OBJ_TO_PTR(pos_args[0]);
+    audiodelays_echo_obj_t *self = MP_OBJ_TO_PTR(pos_args[0]);
     mp_arg_val_t args[MP_ARRAY_SIZE(allowed_args)];
     mp_arg_parse_all(n_args - 1, pos_args + 1, kw_args, MP_ARRAY_SIZE(allowed_args), allowed_args, args);
 
     mp_int_t delay_ms = mp_arg_validate_int_range(args[ARG_delay_ms].u_int, 1, 4000, MP_QSTR_delay_ms);
 
-    common_hal_audioeffects_echo_set_delay_ms(self, delay_ms);
+    common_hal_audiodelays_echo_set_delay_ms(self, delay_ms);
 
     return mp_const_none;
 }
-MP_DEFINE_CONST_FUN_OBJ_KW(audioeffects_echo_set_delay_ms_obj, 1, audioeffects_echo_obj_set_delay_ms);
+MP_DEFINE_CONST_FUN_OBJ_KW(audiodelays_echo_set_delay_ms_obj, 1, audiodelays_echo_obj_set_delay_ms);
 
-MP_PROPERTY_GETSET(audioeffects_echo_delay_ms_obj,
-    (mp_obj_t)&audioeffects_echo_get_delay_ms_obj,
-    (mp_obj_t)&audioeffects_echo_set_delay_ms_obj);
+MP_PROPERTY_GETSET(audiodelays_echo_delay_ms_obj,
+    (mp_obj_t)&audiodelays_echo_get_delay_ms_obj,
+    (mp_obj_t)&audiodelays_echo_set_delay_ms_obj);
 
 
 
 //|     decay: float
 //|     """The rate the echo decays between 0 and 1."""
-static mp_obj_t audioeffects_echo_obj_get_decay(mp_obj_t self_in) {
-    return mp_obj_new_float(common_hal_audioeffects_echo_get_decay(self_in));
+static mp_obj_t audiodelays_echo_obj_get_decay(mp_obj_t self_in) {
+    return mp_obj_new_float(common_hal_audiodelays_echo_get_decay(self_in));
 }
-MP_DEFINE_CONST_FUN_OBJ_1(audioeffects_echo_get_decay_obj, audioeffects_echo_obj_get_decay);
+MP_DEFINE_CONST_FUN_OBJ_1(audiodelays_echo_get_decay_obj, audiodelays_echo_obj_get_decay);
 
-static mp_obj_t audioeffects_echo_obj_set_decay(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
+static mp_obj_t audiodelays_echo_obj_set_decay(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
     enum { ARG_decay };
     static const mp_arg_t allowed_args[] = {
         { MP_QSTR_decay,     MP_ARG_OBJ | MP_ARG_REQUIRED, {} },
     };
-    audioeffects_echo_obj_t *self = MP_OBJ_TO_PTR(pos_args[0]);
+    audiodelays_echo_obj_t *self = MP_OBJ_TO_PTR(pos_args[0]);
     mp_arg_val_t args[MP_ARRAY_SIZE(allowed_args)];
     mp_arg_parse_all(n_args - 1, pos_args + 1, kw_args, MP_ARRAY_SIZE(allowed_args), allowed_args, args);
 
@@ -144,28 +144,28 @@ static mp_obj_t audioeffects_echo_obj_set_decay(size_t n_args, const mp_obj_t *p
         mp_raise_ValueError(MP_ERROR_TEXT("decay must be between 0 and 1"));
     }
 
-    common_hal_audioeffects_echo_set_decay(self, decay);
+    common_hal_audiodelays_echo_set_decay(self, decay);
 
     return mp_const_none;
 }
-MP_DEFINE_CONST_FUN_OBJ_KW(audioeffects_echo_set_decay_obj, 1, audioeffects_echo_obj_set_decay);
+MP_DEFINE_CONST_FUN_OBJ_KW(audiodelays_echo_set_decay_obj, 1, audiodelays_echo_obj_set_decay);
 
-MP_PROPERTY_GETSET(audioeffects_echo_decay_obj,
-    (mp_obj_t)&audioeffects_echo_get_decay_obj,
-    (mp_obj_t)&audioeffects_echo_set_decay_obj);
+MP_PROPERTY_GETSET(audiodelays_echo_decay_obj,
+    (mp_obj_t)&audiodelays_echo_get_decay_obj,
+    (mp_obj_t)&audiodelays_echo_set_decay_obj);
 
 
 //|     playing: bool
 //|     """True when any voice is being output. (read-only)"""
-static mp_obj_t audioeffects_echo_obj_get_playing(mp_obj_t self_in) {
-    audioeffects_echo_obj_t *self = MP_OBJ_TO_PTR(self_in);
+static mp_obj_t audiodelays_echo_obj_get_playing(mp_obj_t self_in) {
+    audiodelays_echo_obj_t *self = MP_OBJ_TO_PTR(self_in);
     check_for_deinit(self);
-    return mp_obj_new_bool(common_hal_audioeffects_echo_get_playing(self));
+    return mp_obj_new_bool(common_hal_audiodelays_echo_get_playing(self));
 }
-MP_DEFINE_CONST_FUN_OBJ_1(audioeffects_echo_get_playing_obj, audioeffects_echo_obj_get_playing);
+MP_DEFINE_CONST_FUN_OBJ_1(audiodelays_echo_get_playing_obj, audiodelays_echo_obj_get_playing);
 
-MP_PROPERTY_GETTER(audioeffects_echo_playing_obj,
-    (mp_obj_t)&audioeffects_echo_get_playing_obj);
+MP_PROPERTY_GETTER(audiodelays_echo_playing_obj,
+    (mp_obj_t)&audiodelays_echo_get_playing_obj);
 
 //|     def play(
 //|         self, sample: circuitpython_typing.AudioSample, *, voice: int = 0, loop: bool = False
@@ -177,69 +177,69 @@ MP_PROPERTY_GETTER(audioeffects_echo_playing_obj,
 //|
 //|         The sample must match the Effect's encoding settings given in the constructor."""
 //|         ...
-static mp_obj_t audioeffects_echo_obj_play(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
+static mp_obj_t audiodelays_echo_obj_play(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
     enum { ARG_sample, ARG_loop };
     static const mp_arg_t allowed_args[] = {
         { MP_QSTR_sample,    MP_ARG_OBJ | MP_ARG_REQUIRED, {} },
         { MP_QSTR_loop,      MP_ARG_BOOL | MP_ARG_KW_ONLY, {.u_bool = false} },
     };
-    audioeffects_echo_obj_t *self = MP_OBJ_TO_PTR(pos_args[0]);
+    audiodelays_echo_obj_t *self = MP_OBJ_TO_PTR(pos_args[0]);
     check_for_deinit(self);
     mp_arg_val_t args[MP_ARRAY_SIZE(allowed_args)];
     mp_arg_parse_all(n_args - 1, pos_args + 1, kw_args, MP_ARRAY_SIZE(allowed_args), allowed_args, args);
 
 
     mp_obj_t sample = args[ARG_sample].u_obj;
-    common_hal_audioeffects_echo_play(self, sample, args[ARG_loop].u_bool);
+    common_hal_audiodelays_echo_play(self, sample, args[ARG_loop].u_bool);
 
     return mp_const_none;
 }
-MP_DEFINE_CONST_FUN_OBJ_KW(audioeffects_echo_play_obj, 1, audioeffects_echo_obj_play);
+MP_DEFINE_CONST_FUN_OBJ_KW(audiodelays_echo_play_obj, 1, audiodelays_echo_obj_play);
 
 //|     def stop_voice(self, voice: int = 0) -> None:
 //|         """Stops playback of the sample."""
 //|         ...
 //|
-static mp_obj_t audioeffects_echo_obj_stop(mp_obj_t self_in) {
-    audioeffects_echo_obj_t *self = MP_OBJ_TO_PTR(self_in);
+static mp_obj_t audiodelays_echo_obj_stop(mp_obj_t self_in) {
+    audiodelays_echo_obj_t *self = MP_OBJ_TO_PTR(self_in);
 
-    common_hal_audioeffects_echo_stop(self);
+    common_hal_audiodelays_echo_stop(self);
     return mp_const_none;
 }
-MP_DEFINE_CONST_FUN_OBJ_1(audioeffects_echo_stop_obj, audioeffects_echo_obj_stop);
+MP_DEFINE_CONST_FUN_OBJ_1(audiodelays_echo_stop_obj, audiodelays_echo_obj_stop);
 
 
 
-static const mp_rom_map_elem_t audioeffects_echo_locals_dict_table[] = {
+static const mp_rom_map_elem_t audiodelays_echo_locals_dict_table[] = {
     // Methods
-    { MP_ROM_QSTR(MP_QSTR_deinit), MP_ROM_PTR(&audioeffects_echo_deinit_obj) },
+    { MP_ROM_QSTR(MP_QSTR_deinit), MP_ROM_PTR(&audiodelays_echo_deinit_obj) },
     { MP_ROM_QSTR(MP_QSTR___enter__), MP_ROM_PTR(&default___enter___obj) },
-    { MP_ROM_QSTR(MP_QSTR___exit__), MP_ROM_PTR(&audioeffects_echo___exit___obj) },
-    { MP_ROM_QSTR(MP_QSTR_play), MP_ROM_PTR(&audioeffects_echo_play_obj) },
-    { MP_ROM_QSTR(MP_QSTR_stop), MP_ROM_PTR(&audioeffects_echo_stop_obj) },
+    { MP_ROM_QSTR(MP_QSTR___exit__), MP_ROM_PTR(&audiodelays_echo___exit___obj) },
+    { MP_ROM_QSTR(MP_QSTR_play), MP_ROM_PTR(&audiodelays_echo_play_obj) },
+    { MP_ROM_QSTR(MP_QSTR_stop), MP_ROM_PTR(&audiodelays_echo_stop_obj) },
 
     // Properties
-    { MP_ROM_QSTR(MP_QSTR_playing), MP_ROM_PTR(&audioeffects_echo_playing_obj) },
-    { MP_ROM_QSTR(MP_QSTR_delay_ms), MP_ROM_PTR(&audioeffects_echo_delay_ms_obj) },
-    { MP_ROM_QSTR(MP_QSTR_decay), MP_ROM_PTR(&audioeffects_echo_decay_obj) },
+    { MP_ROM_QSTR(MP_QSTR_playing), MP_ROM_PTR(&audiodelays_echo_playing_obj) },
+    { MP_ROM_QSTR(MP_QSTR_delay_ms), MP_ROM_PTR(&audiodelays_echo_delay_ms_obj) },
+    { MP_ROM_QSTR(MP_QSTR_decay), MP_ROM_PTR(&audiodelays_echo_decay_obj) },
 };
-static MP_DEFINE_CONST_DICT(audioeffects_echo_locals_dict, audioeffects_echo_locals_dict_table);
+static MP_DEFINE_CONST_DICT(audiodelays_echo_locals_dict, audiodelays_echo_locals_dict_table);
 
-static const audiosample_p_t audioeffects_echo_proto = {
+static const audiosample_p_t audiodelays_echo_proto = {
     MP_PROTO_IMPLEMENT(MP_QSTR_protocol_audiosample)
-    .sample_rate = (audiosample_sample_rate_fun)common_hal_audioeffects_echo_get_sample_rate,
-    .bits_per_sample = (audiosample_bits_per_sample_fun)common_hal_audioeffects_echo_get_bits_per_sample,
-    .channel_count = (audiosample_channel_count_fun)common_hal_audioeffects_echo_get_channel_count,
-    .reset_buffer = (audiosample_reset_buffer_fun)audioeffects_echo_reset_buffer,
-    .get_buffer = (audiosample_get_buffer_fun)audioeffects_echo_get_buffer,
-    .get_buffer_structure = (audiosample_get_buffer_structure_fun)audioeffects_echo_get_buffer_structure,
+    .sample_rate = (audiosample_sample_rate_fun)common_hal_audiodelays_echo_get_sample_rate,
+    .bits_per_sample = (audiosample_bits_per_sample_fun)common_hal_audiodelays_echo_get_bits_per_sample,
+    .channel_count = (audiosample_channel_count_fun)common_hal_audiodelays_echo_get_channel_count,
+    .reset_buffer = (audiosample_reset_buffer_fun)audiodelays_echo_reset_buffer,
+    .get_buffer = (audiosample_get_buffer_fun)audiodelays_echo_get_buffer,
+    .get_buffer_structure = (audiosample_get_buffer_structure_fun)audiodelays_echo_get_buffer_structure,
 };
 
 MP_DEFINE_CONST_OBJ_TYPE(
-    audioeffects_echo_type,
+    audiodelays_echo_type,
     MP_QSTR_Echo,
     MP_TYPE_FLAG_HAS_SPECIAL_ACCESSORS,
-    make_new, audioeffects_echo_make_new,
-    locals_dict, &audioeffects_echo_locals_dict,
-    protocol, &audioeffects_echo_proto
+    make_new, audiodelays_echo_make_new,
+    locals_dict, &audiodelays_echo_locals_dict,
+    protocol, &audiodelays_echo_proto
     );
