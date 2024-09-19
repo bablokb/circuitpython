@@ -11,7 +11,7 @@
 extern const mp_obj_type_t audiodelays_echo_type;
 
 void common_hal_audiodelays_echo_construct(audiodelays_echo_obj_t *self,
-    uint32_t delay_ms, mp_float_t decay,
+    uint32_t delay_ms, mp_float_t decay, mp_float_t mix,
     uint32_t buffer_size, uint8_t bits_per_sample, bool samples_signed,
     uint8_t channel_count, uint32_t sample_rate);
 
@@ -27,6 +27,9 @@ void common_hal_audiodelays_echo_set_delay_ms(audiodelays_echo_obj_t *self, uint
 
 mp_float_t common_hal_audiodelays_echo_get_decay(audiodelays_echo_obj_t *self);
 void common_hal_audiodelays_echo_set_decay(audiodelays_echo_obj_t *self, mp_float_t decay);
+
+mp_float_t common_hal_audiodelays_echo_get_mix(audiodelays_echo_obj_t *self);
+void common_hal_audiodelays_echo_set_mix(audiodelays_echo_obj_t *self, mp_float_t decay);
 
 bool common_hal_audiodelays_echo_get_playing(audiodelays_echo_obj_t *self);
 void common_hal_audiodelays_echo_play(audiodelays_echo_obj_t *self, mp_obj_t sample, bool loop);

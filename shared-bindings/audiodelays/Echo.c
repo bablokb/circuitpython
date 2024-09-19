@@ -16,15 +16,17 @@
 #include "shared-bindings/util.h"
 
 #define DECAY_DEFAULT 0.7f
+#define MIX_DEFAULT 0.5f
 
 //| class Echo:
 //|     """An Echo effect"""
 //|
 static mp_obj_t audiodelays_echo_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *all_args) {
-    enum { ARG_delay_ms, ARG_decay, ARG_buffer_size, ARG_sample_rate, ARG_bits_per_sample, ARG_samples_signed, ARG_channel_count, };
+    enum { ARG_delay_ms, ARG_decay, ARG_mix, ARG_buffer_size, ARG_sample_rate, ARG_bits_per_sample, ARG_samples_signed, ARG_channel_count, };
     static const mp_arg_t allowed_args[] = {
         { MP_QSTR_delay_ms, MP_ARG_INT | MP_ARG_KW_ONLY, {.u_int = 50 } },
         { MP_QSTR_decay, MP_ARG_OBJ | MP_ARG_KW_ONLY,  {.u_obj = MP_OBJ_NULL} },
+        { MP_QSTR_mix, MP_ARG_OBJ | MP_ARG_KW_ONLY,  {.u_obj = MP_OBJ_NULL} },
         { MP_QSTR_buffer_size, MP_ARG_INT | MP_ARG_KW_ONLY, {.u_int = 1024} },
         { MP_QSTR_sample_rate, MP_ARG_INT | MP_ARG_KW_ONLY, {.u_int = 8000} },
         { MP_QSTR_bits_per_sample, MP_ARG_INT | MP_ARG_KW_ONLY, {.u_int = 16} },
@@ -42,6 +44,11 @@ static mp_obj_t audiodelays_echo_make_new(const mp_obj_type_t *type, size_t n_ar
         : mp_obj_get_float(args[ARG_decay].u_obj);
     mp_arg_validate_float_range(decay, 0.0f, 1.0f, MP_QSTR_decay);
 
+    mp_float_t mix = (args[ARG_mix].u_obj == MP_OBJ_NULL)
+        ? (mp_float_t)MIX_DEFAULT
+        : mp_obj_get_float(args[ARG_mix].u_obj);
+    mp_arg_validate_float_range(mix, 0.0f, 1.0f, MP_QSTR_mix);
+
     mp_int_t channel_count = mp_arg_validate_int_range(args[ARG_channel_count].u_int, 1, 2, MP_QSTR_channel_count);
     mp_int_t sample_rate = mp_arg_validate_int_min(args[ARG_sample_rate].u_int, 1, MP_QSTR_sample_rate);
     mp_int_t bits_per_sample = args[ARG_bits_per_sample].u_int;
@@ -50,7 +57,7 @@ static mp_obj_t audiodelays_echo_make_new(const mp_obj_type_t *type, size_t n_ar
     }
 
     audiodelays_echo_obj_t *self = mp_obj_malloc(audiodelays_echo_obj_t, &audiodelays_echo_type);
-    common_hal_audiodelays_echo_construct(self, delay_ms, decay, args[ARG_buffer_size].u_int, bits_per_sample, args[ARG_samples_signed].u_bool, channel_count, sample_rate);
+    common_hal_audiodelays_echo_construct(self, delay_ms, decay, mix, args[ARG_buffer_size].u_int, bits_per_sample, args[ARG_samples_signed].u_bool, channel_count, sample_rate);
 
     return MP_OBJ_FROM_PTR(self);
 }
@@ -120,8 +127,6 @@ MP_PROPERTY_GETSET(audiodelays_echo_delay_ms_obj,
     (mp_obj_t)&audiodelays_echo_get_delay_ms_obj,
     (mp_obj_t)&audiodelays_echo_set_delay_ms_obj);
 
-
-
 //|     decay: float
 //|     """The rate the echo decays between 0 and 1."""
 static mp_obj_t audiodelays_echo_obj_get_decay(mp_obj_t self_in) {
@@ -139,10 +144,7 @@ static mp_obj_t audiodelays_echo_obj_set_decay(size_t n_args, const mp_obj_t *po
     mp_arg_parse_all(n_args - 1, pos_args + 1, kw_args, MP_ARRAY_SIZE(allowed_args), allowed_args, args);
 
     mp_float_t decay = mp_obj_get_float(args[ARG_decay].u_obj);
-
-    if (decay > 1 || decay < 0) {
-        mp_raise_ValueError(MP_ERROR_TEXT("decay must be between 0 and 1"));
-    }
+    mp_arg_validate_float_range(decay, 0.0f, 1.0f, MP_QSTR_decay);
 
     common_hal_audiodelays_echo_set_decay(self, decay);
 
@@ -153,6 +155,39 @@ MP_DEFINE_CONST_FUN_OBJ_KW(audiodelays_echo_set_decay_obj, 1, audiodelays_echo_o
 MP_PROPERTY_GETSET(audiodelays_echo_decay_obj,
     (mp_obj_t)&audiodelays_echo_get_decay_obj,
     (mp_obj_t)&audiodelays_echo_set_decay_obj);
+
+
+
+
+//|     mix: float
+//|     """The rate the echo mix between 0 and 1."""
+static mp_obj_t audiodelays_echo_obj_get_mix(mp_obj_t self_in) {
+    return mp_obj_new_float(common_hal_audiodelays_echo_get_mix(self_in));
+}
+MP_DEFINE_CONST_FUN_OBJ_1(audiodelays_echo_get_mix_obj, audiodelays_echo_obj_get_mix);
+
+static mp_obj_t audiodelays_echo_obj_set_mix(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
+    enum { ARG_mix };
+    static const mp_arg_t allowed_args[] = {
+        { MP_QSTR_mix,     MP_ARG_OBJ | MP_ARG_REQUIRED, {} },
+    };
+    audiodelays_echo_obj_t *self = MP_OBJ_TO_PTR(pos_args[0]);
+    mp_arg_val_t args[MP_ARRAY_SIZE(allowed_args)];
+    mp_arg_parse_all(n_args - 1, pos_args + 1, kw_args, MP_ARRAY_SIZE(allowed_args), allowed_args, args);
+
+    mp_float_t mix = mp_obj_get_float(args[ARG_mix].u_obj);
+    mp_arg_validate_float_range(mix, 0.0f, 1.0f, MP_QSTR_mix);
+
+    common_hal_audiodelays_echo_set_mix(self, mix);
+
+    return mp_const_none;
+}
+MP_DEFINE_CONST_FUN_OBJ_KW(audiodelays_echo_set_mix_obj, 1, audiodelays_echo_obj_set_mix);
+
+MP_PROPERTY_GETSET(audiodelays_echo_mix_obj,
+    (mp_obj_t)&audiodelays_echo_get_mix_obj,
+    (mp_obj_t)&audiodelays_echo_set_mix_obj);
+
 
 
 //|     playing: bool
@@ -196,7 +231,7 @@ static mp_obj_t audiodelays_echo_obj_play(size_t n_args, const mp_obj_t *pos_arg
 }
 MP_DEFINE_CONST_FUN_OBJ_KW(audiodelays_echo_play_obj, 1, audiodelays_echo_obj_play);
 
-//|     def stop_voice(self, voice: int = 0) -> None:
+//|     def stop(self) -> None:
 //|         """Stops playback of the sample."""
 //|         ...
 //|
@@ -222,6 +257,7 @@ static const mp_rom_map_elem_t audiodelays_echo_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_playing), MP_ROM_PTR(&audiodelays_echo_playing_obj) },
     { MP_ROM_QSTR(MP_QSTR_delay_ms), MP_ROM_PTR(&audiodelays_echo_delay_ms_obj) },
     { MP_ROM_QSTR(MP_QSTR_decay), MP_ROM_PTR(&audiodelays_echo_decay_obj) },
+    { MP_ROM_QSTR(MP_QSTR_mix), MP_ROM_PTR(&audiodelays_echo_mix_obj) },
 };
 static MP_DEFINE_CONST_DICT(audiodelays_echo_locals_dict, audiodelays_echo_locals_dict_table);
 

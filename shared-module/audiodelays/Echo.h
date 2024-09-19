@@ -15,6 +15,7 @@ typedef struct {
     mp_obj_base_t base;
     uint32_t delay_ms;
     uint16_t decay;
+    uint16_t mix;
     uint8_t bits_per_sample;
     bool samples_signed;
     uint8_t channel_count;
