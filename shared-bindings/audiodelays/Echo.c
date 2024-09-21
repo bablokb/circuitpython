@@ -44,11 +44,6 @@ static mp_obj_t audiodelays_echo_make_new(const mp_obj_type_t *type, size_t n_ar
         : mp_obj_get_float(args[ARG_decay].u_obj);
     mp_arg_validate_float_range(decay, 0.0f, 1.0f, MP_QSTR_decay);
 
-    mp_float_t mix = (args[ARG_mix].u_obj == MP_OBJ_NULL)
-        ? (mp_float_t)MIX_DEFAULT
-        : mp_obj_get_float(args[ARG_mix].u_obj);
-    mp_arg_validate_float_range(mix, 0.0f, 1.0f, MP_QSTR_mix);
-
     mp_int_t channel_count = mp_arg_validate_int_range(args[ARG_channel_count].u_int, 1, 2, MP_QSTR_channel_count);
     mp_int_t sample_rate = mp_arg_validate_int_min(args[ARG_sample_rate].u_int, 1, MP_QSTR_sample_rate);
     mp_int_t bits_per_sample = args[ARG_bits_per_sample].u_int;
@@ -57,7 +52,7 @@ static mp_obj_t audiodelays_echo_make_new(const mp_obj_type_t *type, size_t n_ar
     }
 
     audiodelays_echo_obj_t *self = mp_obj_malloc(audiodelays_echo_obj_t, &audiodelays_echo_type);
-    common_hal_audiodelays_echo_construct(self, delay_ms, decay, mix, args[ARG_buffer_size].u_int, bits_per_sample, args[ARG_samples_signed].u_bool, channel_count, sample_rate);
+    common_hal_audiodelays_echo_construct(self, delay_ms, decay, args[ARG_mix].u_obj, args[ARG_buffer_size].u_int, bits_per_sample, args[ARG_samples_signed].u_bool, channel_count, sample_rate);
 
     return MP_OBJ_FROM_PTR(self);
 }
@@ -162,7 +157,7 @@ MP_PROPERTY_GETSET(audiodelays_echo_decay_obj,
 //|     mix: float
 //|     """The rate the echo mix between 0 and 1."""
 static mp_obj_t audiodelays_echo_obj_get_mix(mp_obj_t self_in) {
-    return mp_obj_new_float(common_hal_audiodelays_echo_get_mix(self_in));
+    return common_hal_audiodelays_echo_get_mix(self_in);
 }
 MP_DEFINE_CONST_FUN_OBJ_1(audiodelays_echo_get_mix_obj, audiodelays_echo_obj_get_mix);
 
@@ -175,10 +170,7 @@ static mp_obj_t audiodelays_echo_obj_set_mix(size_t n_args, const mp_obj_t *pos_
     mp_arg_val_t args[MP_ARRAY_SIZE(allowed_args)];
     mp_arg_parse_all(n_args - 1, pos_args + 1, kw_args, MP_ARRAY_SIZE(allowed_args), allowed_args, args);
 
-    mp_float_t mix = mp_obj_get_float(args[ARG_mix].u_obj);
-    mp_arg_validate_float_range(mix, 0.0f, 1.0f, MP_QSTR_mix);
-
-    common_hal_audiodelays_echo_set_mix(self, mix);
+    common_hal_audiodelays_echo_set_mix(self, args[ARG_mix].u_obj);
 
     return mp_const_none;
 }

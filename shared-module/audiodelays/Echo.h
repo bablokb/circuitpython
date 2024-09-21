@@ -8,6 +8,7 @@
 #include "py/obj.h"
 
 #include "shared-module/audiocore/__init__.h"
+#include "shared-module/synthio/block.h"
 
 extern const mp_obj_type_t audiodelays_echo_type;
 
@@ -15,7 +16,7 @@ typedef struct {
     mp_obj_base_t base;
     uint32_t delay_ms;
     uint16_t decay;
-    uint16_t mix;
+    synthio_block_slot_t mix;
     uint8_t bits_per_sample;
     bool samples_signed;
     uint8_t channel_count;

@@ -10,7 +10,7 @@
 #include "shared-module/audiomixer/utils.h"
 
 
-void common_hal_audiodelays_echo_construct(audiodelays_echo_obj_t *self, uint32_t delay_ms, mp_float_t decay, mp_float_t mix,
+void common_hal_audiodelays_echo_construct(audiodelays_echo_obj_t *self, uint32_t delay_ms, mp_float_t decay, mp_obj_t mix,
     uint32_t buffer_size, uint8_t bits_per_sample,
     bool samples_signed, uint8_t channel_count, uint32_t sample_rate) {
 
@@ -29,7 +29,11 @@ void common_hal_audiodelays_echo_construct(audiodelays_echo_obj_t *self, uint32_
     memset(self->buffer, 0, self->buffer_len);
 
     self->decay = (uint16_t)(decay * (1 << 15));
-    self->mix = (uint16_t)(mix * (1 << 15));
+
+    if (mix == MP_OBJ_NULL) {
+        mix = mp_obj_new_float(0.5);
+    }
+    synthio_block_assign_slot(mix, &self->mix, MP_QSTR_mix);
 
     // calculate buffer size for the set delay
     self->delay_ms = delay_ms;
@@ -103,13 +107,12 @@ void common_hal_audiodelays_echo_set_decay(audiodelays_echo_obj_t *self, mp_floa
     self->decay = (uint16_t)(decay * (1 << 15));
 }
 
-mp_float_t common_hal_audiodelays_echo_get_mix(audiodelays_echo_obj_t *self) {
-    return (mp_float_t)self->mix / (1 << 15);
+mp_obj_t common_hal_audiodelays_echo_get_mix(audiodelays_echo_obj_t *self) {
+    return self->mix.obj;
 }
 
-void common_hal_audiodelays_echo_set_mix(audiodelays_echo_obj_t *self, mp_float_t mix) {
-    self->mix = (uint16_t)(mix * (1 << 15));
-    mp_printf(&mp_plat_print, "mix %d\n", self->mix);
+void common_hal_audiodelays_echo_set_mix(audiodelays_echo_obj_t *self, mp_obj_t arg) {
+    synthio_block_assign_slot(arg, &self->mix, MP_QSTR_mix);
 }
 
 uint32_t common_hal_audiodelays_echo_get_sample_rate(audiodelays_echo_obj_t *self) {
@@ -177,6 +180,13 @@ audioio_get_buffer_result_t audiodelays_echo_get_buffer(audiodelays_echo_obj_t *
     uint32_t *word_buffer = (uint32_t *)self->buffer;
     uint32_t length = self->buffer_len / sizeof(uint32_t);
     uint32_t echo_buf_len = self->echo_buffer_len / sizeof(uint32_t);
+    mp_float_t f_mix = synthio_block_slot_get(&self->mix);
+    if (f_mix > 1.0) {
+        f_mix = 1.0;
+    } else if (f_mix < 0.0) {
+        f_mix = 0.0;
+    }
+    uint16_t mix = (uint16_t)(f_mix * (1 << 15));
 
     while (length != 0) {
         if (self->sample_buffer_length == 0) {
@@ -201,7 +211,7 @@ audioio_get_buffer_result_t audiodelays_echo_get_buffer(audiodelays_echo_obj_t *
         // If we have no sample keep the echo echoing
         if (self->sample == NULL) {
             if (MP_LIKELY(self->bits_per_sample == 16)) {
-                if (self->mix == 0) { // no effect and no sample sound
+                if (mix == 0) { // no effect and no sample sound
                     for (uint32_t i = 0; i < length; i++) {
                         word_buffer[i] = 0;
                     }
@@ -212,7 +222,7 @@ audioio_get_buffer_result_t audiodelays_echo_get_buffer(audiodelays_echo_obj_t *
                         word_buffer[i] = mult16signed(echo, self->decay);
                         self->echo_buffer[self->echo_buffer_write_pos++] = word_buffer[i];
 
-                        word_buffer[i] = mult16signed(word_buffer[i], self->mix);
+                        word_buffer[i] = mult16signed(word_buffer[i], mix);
 
                         if (self->echo_buffer_read_pos >= echo_buf_len) {
                             self->echo_buffer_read_pos = 0;
@@ -246,7 +256,7 @@ audioio_get_buffer_result_t audiodelays_echo_get_buffer(audiodelays_echo_obj_t *
             uint32_t *sample_src = self->sample_remaining_buffer;
 
             if (MP_LIKELY(self->bits_per_sample == 16)) {
-                if (self->mix == 0) { // sample only
+                if (mix == 0) { // sample only
                     for (uint32_t i = 0; i < n; i++) {
                         word_buffer[i] = sample_src[i];
                     }
@@ -260,7 +270,7 @@ audioio_get_buffer_result_t audiodelays_echo_get_buffer(audiodelays_echo_obj_t *
                         word_buffer[i] = add16signed(mult16signed(echo, self->decay), sample_word);
                         self->echo_buffer[self->echo_buffer_write_pos++] = word_buffer[i];
 
-                        word_buffer[i] = add16signed(mult16signed(sample_word, 32768 - self->mix), mult16signed(word_buffer[i], self->mix));
+                        word_buffer[i] = add16signed(mult16signed(sample_word, 32768 - mix), mult16signed(word_buffer[i], mix));
 
                         if (self->echo_buffer_read_pos >= echo_buf_len) {
                             self->echo_buffer_read_pos = 0;
