@@ -14,16 +14,18 @@ extern const mp_obj_type_t audiodelays_echo_type;
 
 typedef struct {
     mp_obj_base_t base;
-    uint32_t delay_ms;
-    uint16_t decay;
+    uint32_t max_delay_ms;
+    synthio_block_slot_t delay_ms;
+    synthio_block_slot_t decay;
     synthio_block_slot_t mix;
+
     uint8_t bits_per_sample;
     bool samples_signed;
     uint8_t channel_count;
     uint32_t sample_rate;
 
     uint32_t *buffer;
-    uint32_t buffer_len; // buffer in bytes
+    uint32_t buffer_len; // max buffer in bytes
 
     uint32_t *sample_remaining_buffer;
     uint32_t sample_buffer_length;
@@ -33,6 +35,7 @@ typedef struct {
 
     uint32_t *echo_buffer;
     uint32_t echo_buffer_len; // bytes
+    uint32_t max_echo_buffer_len; // bytes
 
     uint32_t echo_buffer_read_pos; // words
     uint32_t echo_buffer_write_pos; // words

@@ -10,7 +10,8 @@
 #include "shared-module/audiomixer/utils.h"
 
 
-void common_hal_audiodelays_echo_construct(audiodelays_echo_obj_t *self, uint32_t delay_ms, mp_float_t decay, mp_obj_t mix,
+void common_hal_audiodelays_echo_construct(audiodelays_echo_obj_t *self, uint32_t max_delay_ms,
+    mp_obj_t delay_ms, mp_obj_t decay, mp_obj_t mix,
     uint32_t buffer_size, uint8_t bits_per_sample,
     bool samples_signed, uint8_t channel_count, uint32_t sample_rate) {
 
@@ -19,7 +20,6 @@ void common_hal_audiodelays_echo_construct(audiodelays_echo_obj_t *self, uint32_
     self->channel_count = channel_count;
     self->sample_rate = sample_rate;
 
-    // check that buffer_size <= echo_buffer_size
     self->buffer_len = buffer_size;
     self->buffer = m_malloc(self->buffer_len);
     if (self->buffer == NULL) {
@@ -28,7 +28,15 @@ void common_hal_audiodelays_echo_construct(audiodelays_echo_obj_t *self, uint32_
     }
     memset(self->buffer, 0, self->buffer_len);
 
-    self->decay = (uint16_t)(decay * (1 << 15));
+    if (decay == MP_OBJ_NULL) {
+        decay = mp_obj_new_float(0.7);
+    }
+    synthio_block_assign_slot(decay, &self->decay, MP_QSTR_decay);
+
+    if (delay_ms == MP_OBJ_NULL) {
+        delay_ms = mp_obj_new_float(0.05);
+    }
+    synthio_block_assign_slot(delay_ms, &self->delay_ms, MP_QSTR_delay_ms);
 
     if (mix == MP_OBJ_NULL) {
         mix = mp_obj_new_float(0.5);
@@ -36,15 +44,18 @@ void common_hal_audiodelays_echo_construct(audiodelays_echo_obj_t *self, uint32_
     synthio_block_assign_slot(mix, &self->mix, MP_QSTR_mix);
 
     // calculate buffer size for the set delay
-    self->delay_ms = delay_ms;
-    self->echo_buffer_len = self->sample_rate / 1000.0f * self->delay_ms * (self->channel_count * (self->bits_per_sample / 8));
+    mp_float_t f_delay_ms = synthio_block_slot_get(&self->delay_ms);
+    self->echo_buffer_len = self->sample_rate / 1000.0f * f_delay_ms * (self->channel_count * (self->bits_per_sample / 8));
 
-    self->echo_buffer = m_malloc(self->echo_buffer_len);
+    // Set the echo buffer for the max possible delay
+    self->max_delay_ms = max_delay_ms;
+    self->max_echo_buffer_len = self->sample_rate / 1000.0f * max_delay_ms * (self->channel_count * (self->bits_per_sample / 8));
+    self->echo_buffer = m_malloc(self->max_echo_buffer_len);
     if (self->echo_buffer == NULL) {
         common_hal_audiodelays_echo_deinit(self);
-        m_malloc_fail(self->echo_buffer_len);
+        m_malloc_fail(self->max_echo_buffer_len);
     }
-    memset(self->echo_buffer, 0, self->echo_buffer_len);
+    memset(self->echo_buffer, 0, self->max_echo_buffer_len);
 
     // read is where we store the incoming sample
     // write is what we send to the outgoing buffer
@@ -74,19 +85,15 @@ void common_hal_audiodelays_echo_deinit(audiodelays_echo_obj_t *self) {
 }
 
 
-uint32_t common_hal_audiodelays_echo_get_delay_ms(audiodelays_echo_obj_t *self) {
-    return self->delay_ms;
+mp_obj_t common_hal_audiodelays_echo_get_delay_ms(audiodelays_echo_obj_t *self) {
+    return self->delay_ms.obj;
 }
 
-void common_hal_audiodelays_echo_set_delay_ms(audiodelays_echo_obj_t *self, uint32_t delay_ms) {
-    self->delay_ms = delay_ms;
-    self->echo_buffer_len = self->sample_rate / 1000.0f * self->delay_ms * (self->channel_count * (self->bits_per_sample / 8));
+void common_hal_audiodelays_echo_set_delay_ms(audiodelays_echo_obj_t *self, mp_obj_t delay_ms) {
+    synthio_block_assign_slot(delay_ms, &self->delay_ms, MP_QSTR_delay_ms);
 
-    self->echo_buffer = m_realloc(self->echo_buffer, self->echo_buffer_len);
-    if (self->echo_buffer == NULL) {
-        common_hal_audiodelays_echo_deinit(self);
-        m_malloc_fail(self->echo_buffer_len);
-    }
+    mp_float_t f_delay_ms = synthio_block_slot_get(&self->delay_ms);
+    self->echo_buffer_len = self->sample_rate / 1000.0f * f_delay_ms * (self->channel_count * (self->bits_per_sample / 8));
 
     uint32_t max_ebuf_length = self->echo_buffer_len / sizeof(uint32_t);
 
@@ -99,12 +106,12 @@ void common_hal_audiodelays_echo_set_delay_ms(audiodelays_echo_obj_t *self, uint
     }
 }
 
-mp_float_t common_hal_audiodelays_echo_get_decay(audiodelays_echo_obj_t *self) {
-    return (mp_float_t)self->decay / (1 << 15);
+mp_obj_t common_hal_audiodelays_echo_get_decay(audiodelays_echo_obj_t *self) {
+    return self->decay.obj;
 }
 
-void common_hal_audiodelays_echo_set_decay(audiodelays_echo_obj_t *self, mp_float_t decay) {
-    self->decay = (uint16_t)(decay * (1 << 15));
+void common_hal_audiodelays_echo_set_decay(audiodelays_echo_obj_t *self, mp_obj_t decay) {
+    synthio_block_assign_slot(decay, &self->decay, MP_QSTR_decay);
 }
 
 mp_obj_t common_hal_audiodelays_echo_get_mix(audiodelays_echo_obj_t *self) {
@@ -169,8 +176,6 @@ void common_hal_audiodelays_echo_play(audiodelays_echo_obj_t *self, mp_obj_t sam
 
 void common_hal_audiodelays_echo_stop(audiodelays_echo_obj_t *self) {
     self->sample = NULL;
-    // memset(self->echo_buffer, 0, self->echo_buffer_len); // clear echo
-    // memset(self->buffer, 0, self->buffer_len);
     return;
 }
 
@@ -187,6 +192,14 @@ audioio_get_buffer_result_t audiodelays_echo_get_buffer(audiodelays_echo_obj_t *
         f_mix = 0.0;
     }
     uint16_t mix = (uint16_t)(f_mix * (1 << 15));
+
+    mp_float_t f_decay = synthio_block_slot_get(&self->decay);
+    if (f_decay > 1.0) {
+        f_decay = 1.0;
+    } else if (f_decay < 0.0) {
+        f_decay = 0.0;
+    }
+    uint16_t decay = (uint16_t)(f_decay * (1 << 15));
 
     while (length != 0) {
         if (self->sample_buffer_length == 0) {
@@ -219,7 +232,7 @@ audioio_get_buffer_result_t audiodelays_echo_get_buffer(audiodelays_echo_obj_t *
                     // sample signed/unsigned won't matter as we have no sample
                     for (uint32_t i = 0; i < length; i++) {
                         uint32_t echo = self->echo_buffer[self->echo_buffer_read_pos++];
-                        word_buffer[i] = mult16signed(echo, self->decay);
+                        word_buffer[i] = mult16signed(echo, decay);
                         self->echo_buffer[self->echo_buffer_write_pos++] = word_buffer[i];
 
                         word_buffer[i] = mult16signed(word_buffer[i], mix);
@@ -238,7 +251,7 @@ audioio_get_buffer_result_t audiodelays_echo_get_buffer(audiodelays_echo_obj_t *
                 uint16_t *echo_hsrc = (uint16_t *)self->echo_buffer;
                 for (uint32_t i = 0; i < length * 2; i++) {
                     uint32_t echo_word = unpack8(echo_hsrc[i]);
-                    echo_word = mult16signed(echo_word, self->decay);
+                    echo_word = mult16signed(echo_word, decay);
                     hword_buffer[i] = pack8(echo_word);
 
                     echo_hsrc[self->echo_buffer_write_pos++] = hword_buffer[i];
@@ -267,7 +280,7 @@ audioio_get_buffer_result_t audiodelays_echo_get_buffer(audiodelays_echo_obj_t *
                             sample_word = tosigned16(sample_word);
                         }
                         uint32_t echo = self->echo_buffer[self->echo_buffer_read_pos++];
-                        word_buffer[i] = add16signed(mult16signed(echo, self->decay), sample_word);
+                        word_buffer[i] = add16signed(mult16signed(echo, decay), sample_word);
                         self->echo_buffer[self->echo_buffer_write_pos++] = word_buffer[i];
 
                         word_buffer[i] = add16signed(mult16signed(sample_word, 32768 - mix), mult16signed(word_buffer[i], mix));
@@ -290,7 +303,7 @@ audioio_get_buffer_result_t audiodelays_echo_get_buffer(audiodelays_echo_obj_t *
                     if (MP_LIKELY(!self->samples_signed)) {
                         sample_word = tosigned16(sample_word);
                     }
-                    echo_word = mult16signed(echo_word, self->decay);
+                    echo_word = mult16signed(echo_word, decay);
                     sample_word = add16signed(sample_word, echo_word);
                     hword_buffer[i] = pack8(sample_word);
 

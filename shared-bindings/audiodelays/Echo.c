@@ -22,12 +22,13 @@
 //|     """An Echo effect"""
 //|
 static mp_obj_t audiodelays_echo_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *all_args) {
-    enum { ARG_delay_ms, ARG_decay, ARG_mix, ARG_buffer_size, ARG_sample_rate, ARG_bits_per_sample, ARG_samples_signed, ARG_channel_count, };
+    enum { ARG_max_delay_ms, ARG_delay_ms, ARG_decay, ARG_mix, ARG_buffer_size, ARG_sample_rate, ARG_bits_per_sample, ARG_samples_signed, ARG_channel_count, };
     static const mp_arg_t allowed_args[] = {
-        { MP_QSTR_delay_ms, MP_ARG_INT | MP_ARG_KW_ONLY, {.u_int = 50 } },
+        { MP_QSTR_max_delay_ms, MP_ARG_INT | MP_ARG_KW_ONLY, {.u_int = 50 } },
+        { MP_QSTR_delay_ms, MP_ARG_OBJ | MP_ARG_KW_ONLY, {.u_obj = MP_OBJ_NULL} },
         { MP_QSTR_decay, MP_ARG_OBJ | MP_ARG_KW_ONLY,  {.u_obj = MP_OBJ_NULL} },
         { MP_QSTR_mix, MP_ARG_OBJ | MP_ARG_KW_ONLY,  {.u_obj = MP_OBJ_NULL} },
-        { MP_QSTR_buffer_size, MP_ARG_INT | MP_ARG_KW_ONLY, {.u_int = 1024} },
+        { MP_QSTR_buffer_size, MP_ARG_INT | MP_ARG_KW_ONLY, {.u_int = 512} },
         { MP_QSTR_sample_rate, MP_ARG_INT | MP_ARG_KW_ONLY, {.u_int = 8000} },
         { MP_QSTR_bits_per_sample, MP_ARG_INT | MP_ARG_KW_ONLY, {.u_int = 16} },
         { MP_QSTR_samples_signed, MP_ARG_BOOL | MP_ARG_KW_ONLY, {.u_bool = true} },
@@ -37,12 +38,7 @@ static mp_obj_t audiodelays_echo_make_new(const mp_obj_type_t *type, size_t n_ar
     mp_arg_val_t args[MP_ARRAY_SIZE(allowed_args)];
     mp_arg_parse_all_kw_array(n_args, n_kw, all_args, MP_ARRAY_SIZE(allowed_args), allowed_args, args);
 
-    mp_int_t delay_ms = mp_arg_validate_int_range(args[ARG_delay_ms].u_int, 1, 4000, MP_QSTR_delay_ms);
-
-    mp_float_t decay = (args[ARG_decay].u_obj == MP_OBJ_NULL)
-        ? (mp_float_t)DECAY_DEFAULT
-        : mp_obj_get_float(args[ARG_decay].u_obj);
-    mp_arg_validate_float_range(decay, 0.0f, 1.0f, MP_QSTR_decay);
+    mp_int_t max_delay_ms = mp_arg_validate_int_range(args[ARG_max_delay_ms].u_int, 1, 4000, MP_QSTR_max_delay_ms);
 
     mp_int_t channel_count = mp_arg_validate_int_range(args[ARG_channel_count].u_int, 1, 2, MP_QSTR_channel_count);
     mp_int_t sample_rate = mp_arg_validate_int_min(args[ARG_sample_rate].u_int, 1, MP_QSTR_sample_rate);
@@ -52,7 +48,7 @@ static mp_obj_t audiodelays_echo_make_new(const mp_obj_type_t *type, size_t n_ar
     }
 
     audiodelays_echo_obj_t *self = mp_obj_malloc(audiodelays_echo_obj_t, &audiodelays_echo_type);
-    common_hal_audiodelays_echo_construct(self, delay_ms, decay, args[ARG_mix].u_obj, args[ARG_buffer_size].u_int, bits_per_sample, args[ARG_samples_signed].u_bool, channel_count, sample_rate);
+    common_hal_audiodelays_echo_construct(self, max_delay_ms, args[ARG_delay_ms].u_obj, args[ARG_decay].u_obj, args[ARG_mix].u_obj, args[ARG_buffer_size].u_int, bits_per_sample, args[ARG_samples_signed].u_bool, channel_count, sample_rate);
 
     return MP_OBJ_FROM_PTR(self);
 }
@@ -90,13 +86,13 @@ static mp_obj_t audiodelays_echo_obj___exit__(size_t n_args, const mp_obj_t *arg
 static MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(audiodelays_echo___exit___obj, 4, 4, audiodelays_echo_obj___exit__);
 
 
-//|     delay_ms: int
+//|     delay_ms: BlockInput
 //|     """Delay of the echo in microseconds. (read-only)"""
 //|
 static mp_obj_t audiodelays_echo_obj_get_delay_ms(mp_obj_t self_in) {
     audiodelays_echo_obj_t *self = MP_OBJ_TO_PTR(self_in);
 
-    return mp_obj_new_float(common_hal_audiodelays_echo_get_delay_ms(self));
+    return common_hal_audiodelays_echo_get_delay_ms(self);
 
 }
 MP_DEFINE_CONST_FUN_OBJ_1(audiodelays_echo_get_delay_ms_obj, audiodelays_echo_obj_get_delay_ms);
@@ -104,15 +100,13 @@ MP_DEFINE_CONST_FUN_OBJ_1(audiodelays_echo_get_delay_ms_obj, audiodelays_echo_ob
 static mp_obj_t audiodelays_echo_obj_set_delay_ms(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
     enum { ARG_delay_ms };
     static const mp_arg_t allowed_args[] = {
-        { MP_QSTR_delay_ms, MP_ARG_INT | MP_ARG_REQUIRED, {} },
+        { MP_QSTR_delay_ms,     MP_ARG_OBJ | MP_ARG_REQUIRED, {} },
     };
     audiodelays_echo_obj_t *self = MP_OBJ_TO_PTR(pos_args[0]);
     mp_arg_val_t args[MP_ARRAY_SIZE(allowed_args)];
     mp_arg_parse_all(n_args - 1, pos_args + 1, kw_args, MP_ARRAY_SIZE(allowed_args), allowed_args, args);
 
-    mp_int_t delay_ms = mp_arg_validate_int_range(args[ARG_delay_ms].u_int, 1, 4000, MP_QSTR_delay_ms);
-
-    common_hal_audiodelays_echo_set_delay_ms(self, delay_ms);
+    common_hal_audiodelays_echo_set_delay_ms(self, args[ARG_delay_ms].u_obj);
 
     return mp_const_none;
 }
@@ -122,10 +116,10 @@ MP_PROPERTY_GETSET(audiodelays_echo_delay_ms_obj,
     (mp_obj_t)&audiodelays_echo_get_delay_ms_obj,
     (mp_obj_t)&audiodelays_echo_set_delay_ms_obj);
 
-//|     decay: float
+//|     decay: BlockInput
 //|     """The rate the echo decays between 0 and 1."""
 static mp_obj_t audiodelays_echo_obj_get_decay(mp_obj_t self_in) {
-    return mp_obj_new_float(common_hal_audiodelays_echo_get_decay(self_in));
+    return common_hal_audiodelays_echo_get_decay(self_in);
 }
 MP_DEFINE_CONST_FUN_OBJ_1(audiodelays_echo_get_decay_obj, audiodelays_echo_obj_get_decay);
 
@@ -138,10 +132,7 @@ static mp_obj_t audiodelays_echo_obj_set_decay(size_t n_args, const mp_obj_t *po
     mp_arg_val_t args[MP_ARRAY_SIZE(allowed_args)];
     mp_arg_parse_all(n_args - 1, pos_args + 1, kw_args, MP_ARRAY_SIZE(allowed_args), allowed_args, args);
 
-    mp_float_t decay = mp_obj_get_float(args[ARG_decay].u_obj);
-    mp_arg_validate_float_range(decay, 0.0f, 1.0f, MP_QSTR_decay);
-
-    common_hal_audiodelays_echo_set_decay(self, decay);
+    common_hal_audiodelays_echo_set_decay(self, args[ARG_decay].u_obj);
 
     return mp_const_none;
 }
@@ -151,10 +142,7 @@ MP_PROPERTY_GETSET(audiodelays_echo_decay_obj,
     (mp_obj_t)&audiodelays_echo_get_decay_obj,
     (mp_obj_t)&audiodelays_echo_set_decay_obj);
 
-
-
-
-//|     mix: float
+//|     mix: BlockInput
 //|     """The rate the echo mix between 0 and 1."""
 static mp_obj_t audiodelays_echo_obj_get_mix(mp_obj_t self_in) {
     return common_hal_audiodelays_echo_get_mix(self_in);
