@@ -21,12 +21,19 @@ void common_hal_audiodelays_echo_construct(audiodelays_echo_obj_t *self, uint32_
     self->sample_rate = sample_rate;
 
     self->buffer_len = buffer_size;
-    self->buffer = m_malloc(self->buffer_len);
-    if (self->buffer == NULL) {
+    self->buffer[0] = m_malloc(self->buffer_len);
+    if (self->buffer[0] == NULL) {
         common_hal_audiodelays_echo_deinit(self);
         m_malloc_fail(self->buffer_len);
     }
-    memset(self->buffer, 0, self->buffer_len);
+    memset(self->buffer[0], 0, self->buffer_len);
+    self->buffer[1] = m_malloc(self->buffer_len);
+    if (self->buffer[1] == NULL) {
+        common_hal_audiodelays_echo_deinit(self);
+        m_malloc_fail(self->buffer_len);
+    }
+    memset(self->buffer[1], 0, self->buffer_len);
+    self->last_buf_idx = 1;
 
     if (decay == MP_OBJ_NULL) {
         decay = mp_obj_new_float(0.7);
@@ -81,7 +88,8 @@ void common_hal_audiodelays_echo_deinit(audiodelays_echo_obj_t *self) {
         return;
     }
     self->echo_buffer = NULL;
-    self->buffer = NULL;
+    self->buffer[0] = NULL;
+    self->buffer[1] = NULL;
 }
 
 
@@ -99,9 +107,9 @@ void common_hal_audiodelays_echo_set_delay_ms(audiodelays_echo_obj_t *self, mp_o
 
     if (self->echo_buffer_read_pos > max_ebuf_length) {
         self->echo_buffer_read_pos = 0;
-        self->echo_buffer_write_pos = max_ebuf_length - (self->buffer_len / sizeof(uint32_t));
+        self->echo_buffer_write_pos = max_ebuf_length - (self->buffer_len / sizeof(uint16_t));
     } else if (self->echo_buffer_write_pos > max_ebuf_length) {
-        self->echo_buffer_read_pos = self->buffer_len / sizeof(uint32_t);
+        self->echo_buffer_read_pos = self->buffer_len / sizeof(uint16_t);
         self->echo_buffer_write_pos = 0;
     }
 }
@@ -211,7 +219,8 @@ audioio_get_buffer_result_t audiodelays_echo_get_buffer(audiodelays_echo_obj_t *
     mp_float_t mix = MIN(1.0, MAX(synthio_block_slot_get(&self->mix), 0.0));
     mp_float_t decay = MIN(1.0, MAX(synthio_block_slot_get(&self->decay), 0.0));
 
-    int16_t *word_buffer = (int16_t *)self->buffer;
+    self->last_buf_idx = !self->last_buf_idx;
+    int16_t *word_buffer = (int16_t *)self->buffer[self->last_buf_idx];
     uint32_t length = self->buffer_len / sizeof(uint16_t);
     int16_t *echo_buffer = (int16_t *)self->echo_buffer;
     uint32_t echo_buf_len = self->echo_buffer_len / sizeof(uint16_t);
@@ -338,7 +347,7 @@ audioio_get_buffer_result_t audiodelays_echo_get_buffer(audiodelays_echo_obj_t *
         }
     }
 
-    *buffer = (uint8_t *)self->buffer;
+    *buffer = (uint8_t *)self->buffer[self->last_buf_idx];
     *buffer_length = self->buffer_len;
     return GET_BUFFER_MORE_DATA;
 }
@@ -346,7 +355,7 @@ audioio_get_buffer_result_t audiodelays_echo_get_buffer(audiodelays_echo_obj_t *
 void audiodelays_echo_get_buffer_structure(audiodelays_echo_obj_t *self, bool single_channel_output,
     bool *single_buffer, bool *samples_signed, uint32_t *max_buffer_length, uint8_t *spacing) {
 
-    *single_buffer = true;
+    *single_buffer = false;
     *samples_signed = true;
     *max_buffer_length = self->buffer_len;
     if (single_channel_output) {

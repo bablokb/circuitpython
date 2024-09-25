@@ -24,7 +24,8 @@ typedef struct {
     uint8_t channel_count;
     uint32_t sample_rate;
 
-    uint32_t *buffer;
+    int8_t *buffer[2];
+    uint8_t last_buf_idx;
     uint32_t buffer_len; // max buffer in bytes
 
     uint32_t *sample_remaining_buffer;
@@ -33,7 +34,7 @@ typedef struct {
     bool loop;
     bool more_data;
 
-    uint32_t *echo_buffer;
+    int8_t *echo_buffer;
     uint32_t echo_buffer_len; // bytes
     uint32_t max_echo_buffer_len; // bytes
 
