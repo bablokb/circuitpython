@@ -154,13 +154,13 @@ bool common_hal_audiodelays_echo_get_playing(audiodelays_echo_obj_t *self) {
 
 void common_hal_audiodelays_echo_play(audiodelays_echo_obj_t *self, mp_obj_t sample, bool loop) {
     if (audiosample_sample_rate(sample) != self->sample_rate) {
-        mp_raise_ValueError(MP_ERROR_TEXT("The sample's sample rate does not match the effect's"));
+        mp_raise_ValueError(MP_ERROR_TEXT("The sample's sample rate does not match"));
     }
     if (audiosample_channel_count(sample) != self->channel_count) {
-        mp_raise_ValueError(MP_ERROR_TEXT("The sample's channel count does not match the effect's"));
+        mp_raise_ValueError(MP_ERROR_TEXT("The sample's channel count does not match"));
     }
     if (audiosample_bits_per_sample(sample) != self->bits_per_sample) {
-        mp_raise_ValueError(MP_ERROR_TEXT("The sample's bits_per_sample does not match the effect's"));
+        mp_raise_ValueError(MP_ERROR_TEXT("The sample's bits_per_sample does not match"));
     }
     bool single_buffer;
     bool samples_signed;
@@ -168,7 +168,7 @@ void common_hal_audiodelays_echo_play(audiodelays_echo_obj_t *self, mp_obj_t sam
     uint8_t spacing;
     audiosample_get_buffer_structure(sample, false, &single_buffer, &samples_signed, &max_buffer_length, &spacing);
     if (samples_signed != self->samples_signed) {
-        mp_raise_ValueError(MP_ERROR_TEXT("The sample's signedness does not match the effect's"));
+        mp_raise_ValueError(MP_ERROR_TEXT("The sample's signedness does not match"));
     }
     self->sample = sample;
     self->loop = loop;
@@ -190,7 +190,7 @@ void common_hal_audiodelays_echo_stop(audiodelays_echo_obj_t *self) {
 #define RANGE_LOW (-28000)
 #define RANGE_HIGH (28000)
 #define RANGE_SHIFT (16)
-#define RANGE_SCALE (0xfffffff / (32768 * 2 - RANGE_HIGH))
+#define RANGE_SCALE (0xfffffff / (32768 * 4 - RANGE_HIGH))
 
 // dynamic range compression via a downward compressor with hard knee
 //
