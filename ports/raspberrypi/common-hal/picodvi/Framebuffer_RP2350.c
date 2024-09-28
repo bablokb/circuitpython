@@ -140,7 +140,7 @@ void common_hal_picodvi_framebuffer_construct(picodvi_framebuffer_obj_t *self,
         mp_raise_msg_varg(&mp_type_RuntimeError, MP_ERROR_TEXT("%q in use"), MP_QSTR_picodvi);
     }
 
-    if (!(width == 640 && height == 480) && !(width == 320 && height == 240 && color_depth == 16)) {
+    if (!(width == 640 && height == 480) && !(width == 320 && height == 240 && (color_depth == 16 || color_depth == 8))) {
         mp_raise_ValueError_varg(MP_ERROR_TEXT("Invalid %q and %q"), MP_QSTR_width, MP_QSTR_height);
     }
 
@@ -243,11 +243,14 @@ void common_hal_picodvi_framebuffer_construct(picodvi_framebuffer_obj_t *self,
         DMA_CH0_CTRL_TRIG_INCR_READ_BITS |
         DMA_CH0_CTRL_TRIG_EN_BITS;
     uint32_t dma_pixel_ctrl;
-    // We do 16 bit transfers when pixel doubling and the memory bus will
-    // duplicate the 16 bits to produce 32 bits for the HSTX. HSTX config is the
-    // same.
     if (pixel_doubled) {
-        dma_pixel_ctrl = dma_ctrl | DMA_SIZE_16 << DMA_CH0_CTRL_TRIG_DATA_SIZE_LSB;
+        // We do color_depth size transfers when pixel doubling. The memory bus will
+        // duplicate the 16 bits to produce 32 bits for the HSTX.
+        if (color_depth == 16) {
+            dma_pixel_ctrl = dma_ctrl | DMA_SIZE_16 << DMA_CH0_CTRL_TRIG_DATA_SIZE_LSB;
+        } else {
+            dma_pixel_ctrl = dma_ctrl | DMA_SIZE_8 << DMA_CH0_CTRL_TRIG_DATA_SIZE_LSB;
+        }
     } else {
         dma_pixel_ctrl = dma_ctrl | DMA_SIZE_32 << DMA_CH0_CTRL_TRIG_DATA_SIZE_LSB;
     }
@@ -287,7 +290,9 @@ void common_hal_picodvi_framebuffer_construct(picodvi_framebuffer_obj_t *self,
                 self->dma_commands[command_word++] = dma_pixel_ctrl;
                 self->dma_commands[command_word++] = dma_write_addr;
                 row /= 2;
-                transfer_count *= 2;
+                // When pixel doubling, we do one transfer per pixel and it gets
+                // mirrored into the rest of the word.
+                transfer_count = self->width;
             }
             self->dma_commands[command_word++] = transfer_count;
             uint32_t *row_start = &self->framebuffer[row * self->pitch];
@@ -341,10 +346,17 @@ void common_hal_picodvi_framebuffer_construct(picodvi_framebuffer_obj_t *self,
                     (color_depth - 1) << HSTX_CTRL_EXPAND_TMDS_L0_NBITS_LSB |
                 rot << HSTX_CTRL_EXPAND_TMDS_L0_ROT_LSB;
     }
+    size_t shifts_before_empty = ((32 / color_depth) % 32);
+    if (pixel_doubled && color_depth == 8) {
+        // All but 320x240 at 8bits will shift through all 32 bits. We are only
+        // doubling so we only need 16 bits (2 x 8) to get our doubled pixel.
+        shifts_before_empty = 2;
+    }
+
     // Pixels come in 32 bits at a time. color_depth dictates the number
     // of pixels per word. Control symbols (RAW) are an entire 32-bit word.
     hstx_ctrl_hw->expand_shift =
-        ((32 / color_depth) % 32) << HSTX_CTRL_EXPAND_SHIFT_ENC_N_SHIFTS_LSB |
+        shifts_before_empty << HSTX_CTRL_EXPAND_SHIFT_ENC_N_SHIFTS_LSB |
             color_depth << HSTX_CTRL_EXPAND_SHIFT_ENC_SHIFT_LSB |
             1 << HSTX_CTRL_EXPAND_SHIFT_RAW_N_SHIFTS_LSB |
             0 << HSTX_CTRL_EXPAND_SHIFT_RAW_SHIFT_LSB;
@@ -430,7 +442,7 @@ void common_hal_picodvi_framebuffer_construct(picodvi_framebuffer_obj_t *self,
     dma_irq_handler();
 }
 
-STATIC void _turn_off_dma(uint8_t channel) {
+static void _turn_off_dma(uint8_t channel) {
     dma_channel_config c = dma_channel_get_default_config(channel);
     channel_config_set_enable(&c, false);
     dma_channel_set_config(channel, &c, false /* trigger */);

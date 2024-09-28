@@ -26,6 +26,7 @@
 
 #include "py/mpstate.h"
 
+// CIRCUITPY-CHANGE: avoid warning
 #if defined(MICROPY_NLR_MIPS) && MICROPY_NLR_MIPS
 
 __attribute__((used)) unsigned int nlr_push_tail(nlr_buf_t *nlr);
@@ -78,7 +79,6 @@ NORETURN void nlr_jump(void *val) {
         "nop            \n"
         :
         : "r" (top)
-        // CIRCUITPY-CHANGE: MicroPython caught up with this change in https://github.com/micropython/micropython/pull/14126
         : "memory"
         );
     MP_UNREACHABLE

@@ -40,7 +40,7 @@
 #endif
 
 // This dispatcher function is expected to be independent of the implementation of long int
-STATIC mp_obj_t mp_obj_int_make_new(const mp_obj_type_t *type_in, size_t n_args, size_t n_kw, const mp_obj_t *args) {
+static mp_obj_t mp_obj_int_make_new(const mp_obj_type_t *type_in, size_t n_args, size_t n_kw, const mp_obj_t *args) {
     (void)type_in;
     mp_arg_check_num(n_args, n_kw, 0, 2, false);
 
@@ -83,7 +83,7 @@ typedef enum {
     MP_FP_CLASS_OVERFLOW
 } mp_fp_as_int_class_t;
 
-STATIC mp_fp_as_int_class_t mp_classify_fp_as_int(mp_float_t val) {
+static mp_fp_as_int_class_t mp_classify_fp_as_int(mp_float_t val) {
     union {
         mp_float_t f;
         #if MICROPY_FLOAT_IMPL == MICROPY_FLOAT_IMPL_FLOAT
@@ -195,7 +195,7 @@ void mp_obj_int_print(const mp_print_t *print, mp_obj_t self_in, mp_print_kind_t
     }
 }
 
-STATIC const uint8_t log_base2_floor[] = {
+static const uint8_t log_base2_floor[] = {
     0, 1, 1, 2,
     2, 2, 2, 3,
     3, 3, 3, 3,
@@ -462,7 +462,7 @@ mp_obj_t mp_obj_int_binary_op_extra_cases(mp_binary_op_t op, mp_obj_t lhs_in, mp
 
 // CIRCUITPY-CHANGE
 #if MICROPY_CPYTHON_COMPAT
-STATIC mp_obj_t int_bit_length(mp_obj_t self_in) {
+static mp_obj_t int_bit_length(mp_obj_t self_in) {
     #if MICROPY_LONGINT_IMPL != MICROPY_LONGINT_IMPL_NONE
     if (!mp_obj_is_small_int(self_in)) {
         return mp_obj_int_bit_length_impl(self_in);
@@ -484,7 +484,7 @@ MP_DEFINE_CONST_FUN_OBJ_1(int_bit_length_obj, int_bit_length);
 
 // CIRCUITPY-CHANGE: more functionality
 // this is a classmethod
-STATIC mp_obj_t int_from_bytes(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
+static mp_obj_t int_from_bytes(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
     // TODO: Support signed param (assumes signed=False at the moment)
 
     enum { ARG_bytes, ARG_byteorder, ARG_signed };
@@ -527,11 +527,11 @@ STATIC mp_obj_t int_from_bytes(size_t n_args, const mp_obj_t *pos_args, mp_map_t
     return mp_obj_new_int_from_uint(value);
 }
 
-STATIC MP_DEFINE_CONST_FUN_OBJ_KW(int_from_bytes_fun_obj, 3, int_from_bytes);
-STATIC MP_DEFINE_CONST_CLASSMETHOD_OBJ(int_from_bytes_obj, MP_ROM_PTR(&int_from_bytes_fun_obj));
+static MP_DEFINE_CONST_FUN_OBJ_KW(int_from_bytes_fun_obj, 3, int_from_bytes);
+static MP_DEFINE_CONST_CLASSMETHOD_OBJ(int_from_bytes_obj, MP_ROM_PTR(&int_from_bytes_fun_obj));
 
 // CIRCUITPY-CHANGE: supports signed
-STATIC mp_obj_t int_to_bytes(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
+static mp_obj_t int_to_bytes(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
     enum { ARG_length, ARG_byteorder, ARG_signed };
     static const mp_arg_t allowed_args[] = {
         { MP_QSTR_length,    MP_ARG_REQUIRED | MP_ARG_INT, {.u_int = 0} },
@@ -575,9 +575,9 @@ STATIC mp_obj_t int_to_bytes(size_t n_args, const mp_obj_t *pos_args, mp_map_t *
 
     return mp_obj_new_bytes_from_vstr(&vstr);
 }
-STATIC MP_DEFINE_CONST_FUN_OBJ_KW(int_to_bytes_obj, 3, int_to_bytes);
+static MP_DEFINE_CONST_FUN_OBJ_KW(int_to_bytes_obj, 3, int_to_bytes);
 
-STATIC const mp_rom_map_elem_t int_locals_dict_table[] = {
+static const mp_rom_map_elem_t int_locals_dict_table[] = {
     // CIRCUITPY-CHANGE
     #if MICROPY_CPYTHON_COMPAT
     { MP_ROM_QSTR(MP_QSTR_bit_length), MP_ROM_PTR(&int_bit_length_obj) },
@@ -586,7 +586,7 @@ STATIC const mp_rom_map_elem_t int_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_to_bytes), MP_ROM_PTR(&int_to_bytes_obj) },
 };
 
-STATIC MP_DEFINE_CONST_DICT(int_locals_dict, int_locals_dict_table);
+static MP_DEFINE_CONST_DICT(int_locals_dict, int_locals_dict_table);
 
 MP_DEFINE_CONST_OBJ_TYPE(
     mp_type_int,

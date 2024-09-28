@@ -99,7 +99,9 @@ int common_hal_floppyio_flux_readinto(void *buf, size_t len, digitalio_digitalin
         false, // Not user-interruptible.
         false, // No sideset enable
         0, -1, // wrap
-        PIO_ANY_OFFSET  // offset
+        PIO_ANY_OFFSET,  // offset
+        PIO_FIFO_TYPE_DEFAULT,
+        PIO_MOV_STATUS_DEFAULT, PIO_MOV_N_DEFAULT
         );
     if (!ok) {
         mp_raise_RuntimeError(MP_ERROR_TEXT("All state machines in use"));

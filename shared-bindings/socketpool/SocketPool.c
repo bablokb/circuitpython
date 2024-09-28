@@ -36,8 +36,7 @@
 static mp_obj_t socketpool_socketpool_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args) {
     mp_arg_check_num(n_args, n_kw, 1, 1, false);
 
-    socketpool_socketpool_obj_t *s = m_new_obj_with_finaliser(socketpool_socketpool_obj_t);
-    s->base.type = &socketpool_socketpool_type;
+    socketpool_socketpool_obj_t *s = mp_obj_malloc_with_finaliser(socketpool_socketpool_obj_t, &socketpool_socketpool_type);
     mp_obj_t radio = args[0];
 
     common_hal_socketpool_socketpool_construct(s, radio);

@@ -144,7 +144,7 @@ void __attribute__ ((noinline)) gc_log_change(uint32_t start_block, uint32_t len
 #endif
 
 // TODO waste less memory; currently requires that all entries in alloc_table have a corresponding block in pool
-STATIC void gc_setup_area(mp_state_mem_area_t *area, void *start, void *end) {
+static void gc_setup_area(mp_state_mem_area_t *area, void *start, void *end) {
     // calculate parameters for GC (T=total, A=alloc table, F=finaliser table, P=pool; all in bytes):
     // T = A + F + P
     //     F = A * BLOCKS_PER_ATB / BLOCKS_PER_FTB
@@ -262,7 +262,7 @@ void gc_add(void *start, void *end) {
 
 #if MICROPY_GC_SPLIT_HEAP_AUTO
 // Try to automatically add a heap area large enough to fulfill 'failed_alloc'.
-STATIC bool gc_try_add_heap(size_t failed_alloc) {
+static bool gc_try_add_heap(size_t failed_alloc) {
     // 'needed' is the size of a heap large enough to hold failed_alloc, with
     // the additional metadata overheads as calculated in gc_setup_area().
     //
@@ -391,7 +391,7 @@ bool gc_ptr_on_heap(void *ptr) {
 #if MICROPY_GC_SPLIT_HEAP
 // Returns the area to which this pointer belongs, or NULL if it isn't
 // allocated on the GC-managed heap.
-STATIC inline mp_state_mem_area_t *gc_get_ptr_area(const void *ptr) {
+static inline mp_state_mem_area_t *gc_get_ptr_area(const void *ptr) {
     if (((uintptr_t)(ptr) & (BYTES_PER_BLOCK - 1)) != 0) {   // must be aligned on a block
         return NULL;
     }
@@ -426,9 +426,9 @@ STATIC inline mp_state_mem_area_t *gc_get_ptr_area(const void *ptr) {
 // topmost block on the stack and repeat with that one.
 // CIRCUITPY-CHANGE: We don't instrument these functions because they occur a lot during GC and
 #if MICROPY_GC_SPLIT_HEAP
-STATIC void MP_NO_INSTRUMENT PLACE_IN_ITCM(gc_mark_subtree)(mp_state_mem_area_t * area, size_t block)
+static void MP_NO_INSTRUMENT PLACE_IN_ITCM(gc_mark_subtree)(mp_state_mem_area_t * area, size_t block)
 #else
-STATIC void MP_NO_INSTRUMENT PLACE_IN_ITCM(gc_mark_subtree)(size_t block)
+static void MP_NO_INSTRUMENT PLACE_IN_ITCM(gc_mark_subtree)(size_t block)
 #endif
 {
     // Start with the block passed in the argument.
@@ -499,7 +499,7 @@ STATIC void MP_NO_INSTRUMENT PLACE_IN_ITCM(gc_mark_subtree)(size_t block)
     }
 }
 
-STATIC void gc_deal_with_stack_overflow(void) {
+static void gc_deal_with_stack_overflow(void) {
     while (MP_STATE_MEM(gc_stack_overflow)) {
         MP_STATE_MEM(gc_stack_overflow) = 0;
 
@@ -520,7 +520,7 @@ STATIC void gc_deal_with_stack_overflow(void) {
     }
 }
 
-STATIC void gc_sweep(void) {
+static void gc_sweep(void) {
     #if MICROPY_PY_GC_COLLECT_RETVAL
     MP_STATE_MEM(gc_collected) = 0;
     #endif
@@ -773,13 +773,10 @@ void gc_info(gc_info_t *info) {
     GC_EXIT();
 }
 
-// CIRCUITPY-CHANGE
+// CIRCUITPY-CHANGE: C code may be used when the VM heap isn't active. This
+// allows that code to test if it is. It can use the outer pool if needed.
 bool gc_alloc_possible(void) {
-    #if MICROPY_GC_SPLIT_HEAP
-    return MP_STATE_MEM(gc_last_free_area) != 0;
-    #else
     return MP_STATE_MEM(area).gc_pool_start != 0;
-    #endif
 }
 
 void *gc_alloc(size_t n_bytes, unsigned int alloc_flags) {
@@ -993,6 +990,7 @@ void gc_free(void *ptr) {
     mp_state_mem_area_t *area;
     #if MICROPY_GC_SPLIT_HEAP
     area = gc_get_ptr_area(ptr);
+    // CIRCUITPY-CHANGE: don't just assert.
     // assert(area);
     #else
     // CIRCUITPY-CHANGE: extra checking

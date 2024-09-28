@@ -198,7 +198,11 @@ void common_hal_audiobusio_i2sout_construct(audiobusio_i2sout_obj_t *self,
         false, 32, false, // in settings
         false, // Not user-interruptible.
         0, -1, // wrap settings
-        PIO_ANY_OFFSET);
+        PIO_ANY_OFFSET,
+        PIO_FIFO_TYPE_DEFAULT,
+        PIO_MOV_STATUS_DEFAULT,
+        PIO_MOV_N_DEFAULT
+        );
 
     self->playing = false;
     audio_dma_init(&self->dma);

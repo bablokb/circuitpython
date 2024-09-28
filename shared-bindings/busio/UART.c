@@ -151,8 +151,7 @@ static mp_obj_t busio_uart_make_new(const mp_obj_type_t *type, size_t n_args, si
 
     const bool rs485_invert = args[ARG_rs485_invert].u_bool;
 
-    busio_uart_obj_t *self = m_new_obj_with_finaliser(busio_uart_obj_t);
-    self->base.type = &busio_uart_type;
+    busio_uart_obj_t *self = mp_obj_malloc_with_finaliser(busio_uart_obj_t, &busio_uart_type);
 
     common_hal_busio_uart_construct(self, tx, rx, rts, cts, rs485_dir, rs485_invert,
         args[ARG_baudrate].u_int, bits, parity, stop, timeout,

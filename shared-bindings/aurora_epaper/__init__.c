@@ -5,7 +5,7 @@
 
 #include "shared-bindings/aurora_epaper/aurora_framebuffer.h"
 
-STATIC const mp_rom_map_elem_t aurora_epaper_module_globals_table[] = {
+static const mp_rom_map_elem_t aurora_epaper_module_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_aurora_epaper) },
     { MP_ROM_QSTR(MP_QSTR_AuroraMemoryFramebuffer), MP_ROM_PTR(&aurora_framebuffer_type) },
 };

@@ -65,7 +65,7 @@ EXCLUSIONS = [
     # STM32 build includes generated Python code.
     "ports/*/build*",
     # gitignore in ports/unix ignores *.py, so also do it here.
-    "ports/unix/*.py",
+    "ports/unix/**/*.py",
     # not real python files
     "tests/**/repl_*.py",
     # don't reindent this third-party code we vendored in

@@ -436,6 +436,7 @@ void common_hal_bleio_packet_buffer_deinit(bleio_packet_buffer_obj_t *self) {
         return;
     }
     bleio_characteristic_clear_observer(self->characteristic);
+    self->characteristic = NULL;
     ble_event_remove_handler(packet_buffer_on_ble_client_evt, self);
     ringbuf_deinit(&self->ringbuf);
 }

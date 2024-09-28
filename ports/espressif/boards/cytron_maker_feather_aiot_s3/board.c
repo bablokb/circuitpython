@@ -57,8 +57,7 @@ bool espressif_board_reset_pin_number(gpio_num_t pin_number) {
 
 void reset_board(void) {
     // Turn on VP by default.
-    gpio_set_direction(11, GPIO_MODE_DEF_OUTPUT);
-    gpio_set_level(11, true);
+    config_pin_as_output_with_level(11, true);
 }
 
 // Use the MP_WEAK supervisor/shared/board.c versions of routines not defined here.

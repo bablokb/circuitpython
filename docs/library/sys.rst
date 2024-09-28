@@ -17,7 +17,7 @@ Functions
 
 .. function:: print_exception(exc, file=sys.stdout, /)
 
-   This function is being deprecated and will be removed starting in
+   This function is deprecated and will be removed starting in
    CircuitPython 10.x, `traceback.print_exception()` should be used instead.
 
    Print exception with a traceback to a file-like object *file* (or

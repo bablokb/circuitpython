@@ -47,8 +47,7 @@ static mp_obj_t max3421e_max3421e_make_new(const mp_obj_type_t *type, size_t n_a
 
     mp_obj_t spi = mp_arg_validate_type(args[ARG_spi_bus].u_obj, &busio_spi_type, MP_QSTR_spi_bus);
 
-    max3421e_max3421e_obj_t *self = m_new_obj_with_finaliser(max3421e_max3421e_obj_t);
-    self->base.type = &max3421e_max3421e_type;
+    max3421e_max3421e_obj_t *self = mp_obj_malloc_with_finaliser(max3421e_max3421e_obj_t, &max3421e_max3421e_type);
     common_hal_max3421e_max3421e_construct(self,
         MP_OBJ_TO_PTR(spi), chip_select, irq, args[ARG_baudrate].u_int);
     return self;

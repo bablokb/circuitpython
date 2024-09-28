@@ -23,12 +23,12 @@ TEST_MAPPINGS = {
     "heapq": "heapq/heapq_$(ARCH).mpy",
     "random": "random/random_$(ARCH).mpy",
     "re": "re/re_$(ARCH).mpy",
-    "zlib": "zlib/zlib_$(ARCH).mpy",
 }
 
 # Code to allow a target MicroPython to import an .mpy from RAM
 injected_import_hook_code = """\
-import sys, os, io
+# CIRCUITPY-CHANGE: no vfs, but still have os
+import sys, io, os
 class __File(io.IOBase):
   def __init__(self):
     self.off = 0
@@ -50,6 +50,7 @@ class __FS:
       raise OSError(-2) # ENOENT
   def open(self, path, mode):
     return __File()
+# CIRCUITPY-CHANGE: no vfs, but still have os
 os.mount(__FS(), '/__remote')
 sys.path.insert(0, '/__remote')
 sys.modules['{}'] = __import__('__injected')
@@ -95,8 +96,9 @@ class TargetPyboard:
 def run_tests(target_truth, target, args, stats):
     for test_file in args.files:
         # Find supported test
+        test_file_basename = os.path.basename(test_file)
         for k, v in TEST_MAPPINGS.items():
-            if test_file.find(k) != -1:
+            if test_file_basename.startswith(k):
                 test_module = k
                 test_mpy = v.replace("$(ARCH)", args.arch)
                 break

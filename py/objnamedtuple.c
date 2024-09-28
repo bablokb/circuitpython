@@ -45,9 +45,9 @@ size_t mp_obj_namedtuple_find_field(const mp_obj_namedtuple_type_t *type, qstr n
     return (size_t)-1;
 }
 
-// CIRCUITPY-CHANGE: differences
+// CIRCUITPY-CHANGE: multiple differences
 #if MICROPY_PY_COLLECTIONS_NAMEDTUPLE__ASDICT
-STATIC mp_obj_t namedtuple_asdict(mp_obj_t self_in) {
+static mp_obj_t namedtuple_asdict(mp_obj_t self_in) {
     mp_obj_namedtuple_t *self = MP_OBJ_TO_PTR(self_in);
     const qstr *fields = ((mp_obj_namedtuple_type_t *)self->tuple.base.type)->fields;
     mp_obj_t dict = mp_obj_new_dict(self->tuple.len);
@@ -125,7 +125,7 @@ mp_obj_t namedtuple_make_new(const mp_obj_type_t *type_in, size_t n_args, size_t
 
     // Create a namedtuple with explicit malloc. Calling mp_obj_new_tuple
     // with num_fields=0 returns a read-only object.
-    mp_obj_tuple_t *tuple = mp_obj_malloc_var(mp_obj_tuple_t, mp_obj_t, num_fields, type_in);
+    mp_obj_tuple_t *tuple = mp_obj_malloc_var(mp_obj_tuple_t, items, mp_obj_t, num_fields, type_in);
     tuple->len = num_fields;
 
     // Copy the positional args into the first slots of the namedtuple
@@ -166,7 +166,7 @@ mp_obj_namedtuple_type_t *mp_obj_new_namedtuple_base(size_t n_fields, mp_obj_t *
     return o;
 }
 
-STATIC mp_obj_t mp_obj_new_namedtuple_type(qstr name, size_t n_fields, mp_obj_t *fields) {
+static mp_obj_t mp_obj_new_namedtuple_type(qstr name, size_t n_fields, mp_obj_t *fields) {
     mp_obj_namedtuple_type_t *o = mp_obj_new_namedtuple_base(n_fields, fields);
     mp_obj_type_t *type = (mp_obj_type_t *)&o->base;
     type->base.type = &mp_type_type;
@@ -183,7 +183,7 @@ STATIC mp_obj_t mp_obj_new_namedtuple_type(qstr name, size_t n_fields, mp_obj_t 
     return MP_OBJ_FROM_PTR(o);
 }
 
-STATIC mp_obj_t new_namedtuple_type(mp_obj_t name_in, mp_obj_t fields_in) {
+static mp_obj_t new_namedtuple_type(mp_obj_t name_in, mp_obj_t fields_in) {
     qstr name = mp_obj_str_get_qstr(name_in);
     size_t n_fields;
     mp_obj_t *fields;

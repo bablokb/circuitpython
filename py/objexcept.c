@@ -129,7 +129,7 @@ mp_obj_exception_t *mp_obj_exception_get_native(mp_obj_t self_in) {
     }
 }
 
-STATIC void decompress_error_text_maybe(mp_obj_exception_t *o) {
+static void decompress_error_text_maybe(mp_obj_exception_t *o) {
     #if MICROPY_ROM_TEXT_COMPRESSION
     if (o->args->len == 1 && mp_obj_is_exact_type(o->args->items[0], &mp_type_str)) {
         mp_obj_str_t *o_str = MP_OBJ_TO_PTR(o->args->items[0]);
@@ -485,8 +485,9 @@ mp_obj_t mp_obj_new_exception_args(const mp_obj_type_t *exc_type, size_t n_args,
 }
 
 #if MICROPY_ERROR_REPORTING != MICROPY_ERROR_REPORTING_NONE
+
 mp_obj_t mp_obj_new_exception_msg(const mp_obj_type_t *exc_type, mp_rom_error_text_t msg) {
-    // CIRCUITPY-CHANGE: is different here and for many lines below.
+    // CIRCUITPY-CHANGE
     return mp_obj_new_exception_msg_varg(exc_type, msg);
 }
 
@@ -501,7 +502,7 @@ struct _exc_printer_t {
     byte *buf;
 };
 
-STATIC void exc_add_strn(void *data, const char *str, size_t len) {
+static void exc_add_strn(void *data, const char *str, size_t len) {
     struct _exc_printer_t *pr = data;
     if (pr->len + len >= pr->alloc) {
         // Not enough room for data plus a null byte so try to grow the buffer
@@ -566,6 +567,7 @@ mp_obj_t mp_obj_new_exception_msg_vlist(const mp_obj_type_t *exc_type, mp_rom_er
     }
 
     if (o_str_buf == NULL) {
+        // CIRCUITPY-CHANGE: different way of building message
         // No memory for the string buffer: the string is compressed so don't add it.
         o_str->len = 0;
         o_str->data = NULL;
@@ -726,7 +728,7 @@ void mp_obj_exception_get_traceback(mp_obj_t self_in, size_t *n, size_t **values
 
 // CIRCUITPY-CHANGE: here until end
 #if MICROPY_PY_SYS_EXC_INFO
-STATIC const mp_obj_namedtuple_type_t code_type_obj = {
+static const mp_obj_namedtuple_type_t code_type_obj = {
     NAMEDTUPLE_TYPE_BASE_AND_SLOTS(MP_QSTR_code),
     .n_fields = 15,
     .fields = {
@@ -748,7 +750,7 @@ STATIC const mp_obj_namedtuple_type_t code_type_obj = {
     },
 };
 
-STATIC mp_obj_t code_make_new(qstr file, qstr block) {
+static mp_obj_t code_make_new(qstr file, qstr block) {
     mp_obj_t elems[15] = {
         mp_obj_new_int(0),             // co_argcount
         mp_obj_new_int(0),             // co_kwonlyargcount
@@ -770,7 +772,7 @@ STATIC mp_obj_t code_make_new(qstr file, qstr block) {
     return namedtuple_make_new((const mp_obj_type_t *)&code_type_obj, 15, 0, elems);
 }
 
-STATIC const mp_obj_namedtuple_type_t frame_type_obj = {
+static const mp_obj_namedtuple_type_t frame_type_obj = {
     NAMEDTUPLE_TYPE_BASE_AND_SLOTS(MP_QSTR_frame),
     .n_fields = 8,
     .fields = {
@@ -785,7 +787,7 @@ STATIC const mp_obj_namedtuple_type_t frame_type_obj = {
     },
 };
 
-STATIC mp_obj_t frame_make_new(mp_obj_t f_code, int f_lineno) {
+static mp_obj_t frame_make_new(mp_obj_t f_code, int f_lineno) {
     mp_obj_t elems[8] = {
         mp_const_none,             // f_back
         mp_obj_new_dict(0),        // f_builtins
@@ -800,7 +802,7 @@ STATIC mp_obj_t frame_make_new(mp_obj_t f_code, int f_lineno) {
     return namedtuple_make_new((const mp_obj_type_t *)&frame_type_obj, 8, 0, elems);
 }
 
-STATIC const mp_obj_namedtuple_type_t traceback_type_obj = {
+static const mp_obj_namedtuple_type_t traceback_type_obj = {
     NAMEDTUPLE_TYPE_BASE_AND_SLOTS(MP_QSTR_traceback),
     .n_fields = 4,
     .fields = {
@@ -811,7 +813,7 @@ STATIC const mp_obj_namedtuple_type_t traceback_type_obj = {
     },
 };
 
-STATIC mp_obj_t traceback_from_values(size_t *values, mp_obj_t tb_next) {
+static mp_obj_t traceback_from_values(size_t *values, mp_obj_t tb_next) {
     int lineno = values[1];
 
     mp_obj_t elems[4] = {

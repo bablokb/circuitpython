@@ -196,7 +196,7 @@
 #endif // MICROPY_PY_SYS_SETTRACE
 
 // CIRCUITPY-CHANGE
-STATIC mp_obj_t get_active_exception(mp_exc_stack_t *exc_sp, mp_exc_stack_t *exc_stack) {
+static mp_obj_t get_active_exception(mp_exc_stack_t *exc_sp, mp_exc_stack_t *exc_stack) {
     for (mp_exc_stack_t *e = exc_sp; e >= exc_stack; --e) {
         if (e->prev_exc != NULL) {
             return MP_OBJ_FROM_PTR(e->prev_exc);
@@ -915,7 +915,7 @@ unwind_jump:;
 
                 ENTRY(MP_BC_MAKE_FUNCTION): {
                     DECODE_PTR;
-                    PUSH(mp_make_function_from_raw_code(ptr, code_state->fun_bc->context, NULL));
+                    PUSH(mp_make_function_from_proto_fun(ptr, code_state->fun_bc->context, NULL));
                     DISPATCH();
                 }
 
@@ -923,7 +923,7 @@ unwind_jump:;
                     DECODE_PTR;
                     // Stack layout: def_tuple def_dict <- TOS
                     sp -= 1;
-                    SET_TOP(mp_make_function_from_raw_code(ptr, code_state->fun_bc->context, sp));
+                    SET_TOP(mp_make_function_from_proto_fun(ptr, code_state->fun_bc->context, sp));
                     DISPATCH();
                 }
 
@@ -932,7 +932,7 @@ unwind_jump:;
                     size_t n_closed_over = *ip++;
                     // Stack layout: closed_overs <- TOS
                     sp -= n_closed_over - 1;
-                    SET_TOP(mp_make_closure_from_raw_code(ptr, code_state->fun_bc->context, n_closed_over, sp));
+                    SET_TOP(mp_make_closure_from_proto_fun(ptr, code_state->fun_bc->context, n_closed_over, sp));
                     DISPATCH();
                 }
 
@@ -941,7 +941,7 @@ unwind_jump:;
                     size_t n_closed_over = *ip++;
                     // Stack layout: def_tuple def_dict closed_overs <- TOS
                     sp -= 2 + n_closed_over - 1;
-                    SET_TOP(mp_make_closure_from_raw_code(ptr, code_state->fun_bc->context, 0x100 | n_closed_over, sp));
+                    SET_TOP(mp_make_closure_from_proto_fun(ptr, code_state->fun_bc->context, 0x100 | n_closed_over, sp));
                     DISPATCH();
                 }
 

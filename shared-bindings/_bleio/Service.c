@@ -41,8 +41,7 @@ static mp_obj_t bleio_service_make_new(const mp_obj_type_t *type, size_t n_args,
 
     const bool is_secondary = args[ARG_secondary].u_bool;
 
-    bleio_service_obj_t *service = m_new_obj_with_finaliser(bleio_service_obj_t);
-    service->base.type = &bleio_service_type;
+    bleio_service_obj_t *service = mp_obj_malloc_with_finaliser(bleio_service_obj_t, &bleio_service_type);
 
     common_hal_bleio_service_construct(service, uuid, is_secondary);
 

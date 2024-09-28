@@ -57,11 +57,11 @@
 
 // CIRCUITPY-CHANGE
 // Factoring this common call saves about 90 bytes.
-STATIC NORETURN void mp_raise_OSError_fresult(FRESULT res) {
+static NORETURN void mp_raise_OSError_fresult(FRESULT res) {
     mp_raise_OSError(fresult_to_errno_table[res]);
 }
 
-STATIC mp_import_stat_t fat_vfs_import_stat(void *vfs_in, const char *path) {
+static mp_import_stat_t fat_vfs_import_stat(void *vfs_in, const char *path) {
     fs_user_mount_t *vfs = vfs_in;
     FILINFO fno;
     assert(vfs != NULL);
@@ -76,7 +76,7 @@ STATIC mp_import_stat_t fat_vfs_import_stat(void *vfs_in, const char *path) {
     return MP_IMPORT_STAT_NO_EXIST;
 }
 
-STATIC mp_obj_t fat_vfs_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args) {
+static mp_obj_t fat_vfs_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args) {
     mp_arg_check_num(n_args, n_kw, 1, 1, false);
 
     // create new object
@@ -102,23 +102,23 @@ STATIC mp_obj_t fat_vfs_make_new(const mp_obj_type_t *type, size_t n_args, size_
 }
 
 // CIRCUITPY-CHANGE
-STATIC void verify_fs_writable(fs_user_mount_t *vfs) {
+static void verify_fs_writable(fs_user_mount_t *vfs) {
     if (!filesystem_is_writable_by_python(vfs)) {
         mp_raise_OSError(MP_EROFS);
     }
 }
 
 #if FF_FS_REENTRANT
-STATIC mp_obj_t fat_vfs_del(mp_obj_t self_in) {
+static mp_obj_t fat_vfs_del(mp_obj_t self_in) {
     mp_obj_fat_vfs_t *self = MP_OBJ_TO_PTR(self_in);
     // f_umount only needs to be called to release the sync object
     f_umount(&self->fatfs);
     return mp_const_none;
 }
-STATIC MP_DEFINE_CONST_FUN_OBJ_1(fat_vfs_del_obj, fat_vfs_del);
+static MP_DEFINE_CONST_FUN_OBJ_1(fat_vfs_del_obj, fat_vfs_del);
 #endif
 
-STATIC mp_obj_t fat_vfs_mkfs(mp_obj_t bdev_in) {
+static mp_obj_t fat_vfs_mkfs(mp_obj_t bdev_in) {
     // create new object
     fs_user_mount_t *vfs = MP_OBJ_TO_PTR(fat_vfs_make_new(&mp_fat_vfs_type, 1, 0, &bdev_in));
 
@@ -135,8 +135,8 @@ STATIC mp_obj_t fat_vfs_mkfs(mp_obj_t bdev_in) {
 
     return mp_const_none;
 }
-STATIC MP_DEFINE_CONST_FUN_OBJ_1(fat_vfs_mkfs_fun_obj, fat_vfs_mkfs);
-STATIC MP_DEFINE_CONST_STATICMETHOD_OBJ(fat_vfs_mkfs_obj, MP_ROM_PTR(&fat_vfs_mkfs_fun_obj));
+static MP_DEFINE_CONST_FUN_OBJ_1(fat_vfs_mkfs_fun_obj, fat_vfs_mkfs);
+static MP_DEFINE_CONST_STATICMETHOD_OBJ(fat_vfs_mkfs_obj, MP_ROM_PTR(&fat_vfs_mkfs_fun_obj));
 
 typedef struct _mp_vfs_fat_ilistdir_it_t {
     mp_obj_base_t base;
@@ -146,7 +146,7 @@ typedef struct _mp_vfs_fat_ilistdir_it_t {
     FF_DIR dir;
 } mp_vfs_fat_ilistdir_it_t;
 
-STATIC mp_obj_t mp_vfs_fat_ilistdir_it_iternext(mp_obj_t self_in) {
+static mp_obj_t mp_vfs_fat_ilistdir_it_iternext(mp_obj_t self_in) {
     mp_vfs_fat_ilistdir_it_t *self = MP_OBJ_TO_PTR(self_in);
 
     for (;;) {
@@ -186,14 +186,14 @@ STATIC mp_obj_t mp_vfs_fat_ilistdir_it_iternext(mp_obj_t self_in) {
     return MP_OBJ_STOP_ITERATION;
 }
 
-STATIC mp_obj_t mp_vfs_fat_ilistdir_it_del(mp_obj_t self_in) {
+static mp_obj_t mp_vfs_fat_ilistdir_it_del(mp_obj_t self_in) {
     mp_vfs_fat_ilistdir_it_t *self = MP_OBJ_TO_PTR(self_in);
     // ignore result / error because we may be closing a second time.
     f_closedir(&self->dir);
     return mp_const_none;
 }
 
-STATIC mp_obj_t fat_vfs_ilistdir_func(size_t n_args, const mp_obj_t *args) {
+static mp_obj_t fat_vfs_ilistdir_func(size_t n_args, const mp_obj_t *args) {
     mp_obj_fat_vfs_t *self = MP_OBJ_TO_PTR(args[0]);
     bool is_str_type = true;
     const char *path;
@@ -207,8 +207,7 @@ STATIC mp_obj_t fat_vfs_ilistdir_func(size_t n_args, const mp_obj_t *args) {
     }
 
     // Create a new iterator object to list the dir
-    mp_vfs_fat_ilistdir_it_t *iter = m_new_obj_with_finaliser(mp_vfs_fat_ilistdir_it_t);
-    iter->base.type = &mp_type_polymorph_iter_with_finaliser;
+    mp_vfs_fat_ilistdir_it_t *iter = mp_obj_malloc_with_finaliser(mp_vfs_fat_ilistdir_it_t, &mp_type_polymorph_iter_with_finaliser);
     iter->iternext = mp_vfs_fat_ilistdir_it_iternext;
     iter->finaliser = mp_vfs_fat_ilistdir_it_del;
     iter->is_str = is_str_type;
@@ -220,9 +219,9 @@ STATIC mp_obj_t fat_vfs_ilistdir_func(size_t n_args, const mp_obj_t *args) {
 
     return MP_OBJ_FROM_PTR(iter);
 }
-STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(fat_vfs_ilistdir_obj, 1, 2, fat_vfs_ilistdir_func);
+static MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(fat_vfs_ilistdir_obj, 1, 2, fat_vfs_ilistdir_func);
 
-STATIC mp_obj_t fat_vfs_remove_internal(mp_obj_t vfs_in, mp_obj_t path_in, mp_int_t attr) {
+static mp_obj_t fat_vfs_remove_internal(mp_obj_t vfs_in, mp_obj_t path_in, mp_int_t attr) {
     mp_obj_fat_vfs_t *self = MP_OBJ_TO_PTR(vfs_in);
     // CIRCUITPY-CHANGE
     verify_fs_writable(self);
@@ -250,17 +249,17 @@ STATIC mp_obj_t fat_vfs_remove_internal(mp_obj_t vfs_in, mp_obj_t path_in, mp_in
     }
 }
 
-STATIC mp_obj_t fat_vfs_remove(mp_obj_t vfs_in, mp_obj_t path_in) {
+static mp_obj_t fat_vfs_remove(mp_obj_t vfs_in, mp_obj_t path_in) {
     return fat_vfs_remove_internal(vfs_in, path_in, 0); // 0 == file attribute
 }
-STATIC MP_DEFINE_CONST_FUN_OBJ_2(fat_vfs_remove_obj, fat_vfs_remove);
+static MP_DEFINE_CONST_FUN_OBJ_2(fat_vfs_remove_obj, fat_vfs_remove);
 
-STATIC mp_obj_t fat_vfs_rmdir(mp_obj_t vfs_in, mp_obj_t path_in) {
+static mp_obj_t fat_vfs_rmdir(mp_obj_t vfs_in, mp_obj_t path_in) {
     return fat_vfs_remove_internal(vfs_in, path_in, AM_DIR);
 }
-STATIC MP_DEFINE_CONST_FUN_OBJ_2(fat_vfs_rmdir_obj, fat_vfs_rmdir);
+static MP_DEFINE_CONST_FUN_OBJ_2(fat_vfs_rmdir_obj, fat_vfs_rmdir);
 
-STATIC mp_obj_t fat_vfs_rename(mp_obj_t vfs_in, mp_obj_t path_in, mp_obj_t path_out) {
+static mp_obj_t fat_vfs_rename(mp_obj_t vfs_in, mp_obj_t path_in, mp_obj_t path_out) {
     mp_obj_fat_vfs_t *self = MP_OBJ_TO_PTR(vfs_in);
     // CIRCUITPY-CHANGE
     verify_fs_writable(self);
@@ -281,9 +280,9 @@ STATIC mp_obj_t fat_vfs_rename(mp_obj_t vfs_in, mp_obj_t path_in, mp_obj_t path_
     }
 
 }
-STATIC MP_DEFINE_CONST_FUN_OBJ_3(fat_vfs_rename_obj, fat_vfs_rename);
+static MP_DEFINE_CONST_FUN_OBJ_3(fat_vfs_rename_obj, fat_vfs_rename);
 
-STATIC mp_obj_t fat_vfs_mkdir(mp_obj_t vfs_in, mp_obj_t path_o) {
+static mp_obj_t fat_vfs_mkdir(mp_obj_t vfs_in, mp_obj_t path_o) {
     mp_obj_fat_vfs_t *self = MP_OBJ_TO_PTR(vfs_in);
     verify_fs_writable(self);
     const char *path = mp_obj_str_get_str(path_o);
@@ -295,10 +294,10 @@ STATIC mp_obj_t fat_vfs_mkdir(mp_obj_t vfs_in, mp_obj_t path_o) {
         mp_raise_OSError_fresult(res);
     }
 }
-STATIC MP_DEFINE_CONST_FUN_OBJ_2(fat_vfs_mkdir_obj, fat_vfs_mkdir);
+static MP_DEFINE_CONST_FUN_OBJ_2(fat_vfs_mkdir_obj, fat_vfs_mkdir);
 
 // Change current directory.
-STATIC mp_obj_t fat_vfs_chdir(mp_obj_t vfs_in, mp_obj_t path_in) {
+static mp_obj_t fat_vfs_chdir(mp_obj_t vfs_in, mp_obj_t path_in) {
     mp_obj_fat_vfs_t *self = MP_OBJ_TO_PTR(vfs_in);
     const char *path;
     path = mp_obj_str_get_str(path_in);
@@ -312,10 +311,10 @@ STATIC mp_obj_t fat_vfs_chdir(mp_obj_t vfs_in, mp_obj_t path_in) {
 
     return mp_const_none;
 }
-STATIC MP_DEFINE_CONST_FUN_OBJ_2(fat_vfs_chdir_obj, fat_vfs_chdir);
+static MP_DEFINE_CONST_FUN_OBJ_2(fat_vfs_chdir_obj, fat_vfs_chdir);
 
 // Get the current directory.
-STATIC mp_obj_t fat_vfs_getcwd(mp_obj_t vfs_in) {
+static mp_obj_t fat_vfs_getcwd(mp_obj_t vfs_in) {
     mp_obj_fat_vfs_t *self = MP_OBJ_TO_PTR(vfs_in);
     char buf[MICROPY_ALLOC_PATH_MAX + 1];
     FRESULT res = f_getcwd(&self->fatfs, buf, sizeof(buf));
@@ -325,10 +324,10 @@ STATIC mp_obj_t fat_vfs_getcwd(mp_obj_t vfs_in) {
     }
     return mp_obj_new_str(buf, strlen(buf));
 }
-STATIC MP_DEFINE_CONST_FUN_OBJ_1(fat_vfs_getcwd_obj, fat_vfs_getcwd);
+static MP_DEFINE_CONST_FUN_OBJ_1(fat_vfs_getcwd_obj, fat_vfs_getcwd);
 
 // Get the status of a file or directory.
-STATIC mp_obj_t fat_vfs_stat(mp_obj_t vfs_in, mp_obj_t path_in) {
+static mp_obj_t fat_vfs_stat(mp_obj_t vfs_in, mp_obj_t path_in) {
     mp_obj_fat_vfs_t *self = MP_OBJ_TO_PTR(vfs_in);
     const char *path = mp_obj_str_get_str(path_in);
 
@@ -384,10 +383,10 @@ STATIC mp_obj_t fat_vfs_stat(mp_obj_t vfs_in, mp_obj_t path_in) {
 
     return MP_OBJ_FROM_PTR(t);
 }
-STATIC MP_DEFINE_CONST_FUN_OBJ_2(fat_vfs_stat_obj, fat_vfs_stat);
+static MP_DEFINE_CONST_FUN_OBJ_2(fat_vfs_stat_obj, fat_vfs_stat);
 
 // Get the status of a VFS.
-STATIC mp_obj_t fat_vfs_statvfs(mp_obj_t vfs_in, mp_obj_t path_in) {
+static mp_obj_t fat_vfs_statvfs(mp_obj_t vfs_in, mp_obj_t path_in) {
     mp_obj_fat_vfs_t *self = MP_OBJ_TO_PTR(vfs_in);
     (void)path_in;
 
@@ -414,9 +413,9 @@ STATIC mp_obj_t fat_vfs_statvfs(mp_obj_t vfs_in, mp_obj_t path_in) {
 
     return MP_OBJ_FROM_PTR(t);
 }
-STATIC MP_DEFINE_CONST_FUN_OBJ_2(fat_vfs_statvfs_obj, fat_vfs_statvfs);
+static MP_DEFINE_CONST_FUN_OBJ_2(fat_vfs_statvfs_obj, fat_vfs_statvfs);
 
-STATIC mp_obj_t vfs_fat_mount(mp_obj_t self_in, mp_obj_t readonly, mp_obj_t mkfs) {
+static mp_obj_t vfs_fat_mount(mp_obj_t self_in, mp_obj_t readonly, mp_obj_t mkfs) {
     fs_user_mount_t *self = MP_OBJ_TO_PTR(self_in);
 
     // Read-only device indicated by writeblocks[0] == MP_OBJ_NULL.
@@ -441,17 +440,17 @@ STATIC mp_obj_t vfs_fat_mount(mp_obj_t self_in, mp_obj_t readonly, mp_obj_t mkfs
 
     return mp_const_none;
 }
-STATIC MP_DEFINE_CONST_FUN_OBJ_3(vfs_fat_mount_obj, vfs_fat_mount);
+static MP_DEFINE_CONST_FUN_OBJ_3(vfs_fat_mount_obj, vfs_fat_mount);
 
-STATIC mp_obj_t vfs_fat_umount(mp_obj_t self_in) {
+static mp_obj_t vfs_fat_umount(mp_obj_t self_in) {
     (void)self_in;
     // keep the FAT filesystem mounted internally so the VFS methods can still be used
     return mp_const_none;
 }
-STATIC MP_DEFINE_CONST_FUN_OBJ_1(fat_vfs_umount_obj, vfs_fat_umount);
+static MP_DEFINE_CONST_FUN_OBJ_1(fat_vfs_umount_obj, vfs_fat_umount);
 
 // CIRCUITPY-CHANGE
-STATIC mp_obj_t vfs_fat_utime(mp_obj_t vfs_in, mp_obj_t path_in, mp_obj_t times_in) {
+static mp_obj_t vfs_fat_utime(mp_obj_t vfs_in, mp_obj_t path_in, mp_obj_t times_in) {
     mp_obj_fat_vfs_t *self = MP_OBJ_TO_PTR(vfs_in);
     const char *path = mp_obj_str_get_str(path_in);
     if (!mp_obj_is_tuple_compatible(times_in)) {
@@ -478,14 +477,14 @@ STATIC mp_obj_t vfs_fat_utime(mp_obj_t vfs_in, mp_obj_t path_in, mp_obj_t times_
 
     return mp_const_none;
 }
-STATIC MP_DEFINE_CONST_FUN_OBJ_3(fat_vfs_utime_obj, vfs_fat_utime);
+static MP_DEFINE_CONST_FUN_OBJ_3(fat_vfs_utime_obj, vfs_fat_utime);
 
-STATIC mp_obj_t vfs_fat_getreadonly(mp_obj_t self_in) {
+static mp_obj_t vfs_fat_getreadonly(mp_obj_t self_in) {
     fs_user_mount_t *self = MP_OBJ_TO_PTR(self_in);
     return mp_obj_new_bool(!filesystem_is_writable_by_python(self));
 }
-STATIC MP_DEFINE_CONST_FUN_OBJ_1(fat_vfs_getreadonly_obj, vfs_fat_getreadonly);
-STATIC const mp_obj_property_t fat_vfs_readonly_obj = {
+static MP_DEFINE_CONST_FUN_OBJ_1(fat_vfs_getreadonly_obj, vfs_fat_getreadonly);
+static const mp_obj_property_t fat_vfs_readonly_obj = {
     .base.type = &mp_type_property,
     .proxy = {(mp_obj_t)&fat_vfs_getreadonly_obj,
               MP_ROM_NONE,
@@ -493,7 +492,7 @@ STATIC const mp_obj_property_t fat_vfs_readonly_obj = {
 };
 
 #if MICROPY_FATFS_USE_LABEL
-STATIC mp_obj_t vfs_fat_getlabel(mp_obj_t self_in) {
+static mp_obj_t vfs_fat_getlabel(mp_obj_t self_in) {
     fs_user_mount_t *self = MP_OBJ_TO_PTR(self_in);
     char working_buf[12];
     FRESULT res = f_getlabel(&self->fatfs, working_buf, NULL);
@@ -502,9 +501,9 @@ STATIC mp_obj_t vfs_fat_getlabel(mp_obj_t self_in) {
     }
     return mp_obj_new_str(working_buf, strlen(working_buf));
 }
-STATIC MP_DEFINE_CONST_FUN_OBJ_1(fat_vfs_getlabel_obj, vfs_fat_getlabel);
+static MP_DEFINE_CONST_FUN_OBJ_1(fat_vfs_getlabel_obj, vfs_fat_getlabel);
 
-STATIC mp_obj_t vfs_fat_setlabel(mp_obj_t self_in, mp_obj_t label_in) {
+static mp_obj_t vfs_fat_setlabel(mp_obj_t self_in, mp_obj_t label_in) {
     fs_user_mount_t *self = MP_OBJ_TO_PTR(self_in);
     verify_fs_writable(self);
     const char *label_str = mp_obj_str_get_str(label_in);
@@ -517,8 +516,8 @@ STATIC mp_obj_t vfs_fat_setlabel(mp_obj_t self_in, mp_obj_t label_in) {
     }
     return mp_const_none;
 }
-STATIC MP_DEFINE_CONST_FUN_OBJ_2(fat_vfs_setlabel_obj, vfs_fat_setlabel);
-STATIC const mp_obj_property_t fat_vfs_label_obj = {
+static MP_DEFINE_CONST_FUN_OBJ_2(fat_vfs_setlabel_obj, vfs_fat_setlabel);
+static const mp_obj_property_t fat_vfs_label_obj = {
     .base.type = &mp_type_property,
     .proxy = {(mp_obj_t)&fat_vfs_getlabel_obj,
               (mp_obj_t)&fat_vfs_setlabel_obj,
@@ -526,7 +525,8 @@ STATIC const mp_obj_property_t fat_vfs_label_obj = {
 };
 #endif
 
-STATIC const mp_rom_map_elem_t fat_vfs_locals_dict_table[] = {
+static const mp_rom_map_elem_t fat_vfs_locals_dict_table[] = {
+    // CIRCUITPY-CHANGE: correct name
     #if FF_FS_REENTRANT
     { MP_ROM_QSTR(MP_QSTR___del__), MP_ROM_PTR(&fat_vfs_del_obj) },
     #endif
@@ -550,9 +550,9 @@ STATIC const mp_rom_map_elem_t fat_vfs_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_label), MP_ROM_PTR(&fat_vfs_label_obj) },
     #endif
 };
-STATIC MP_DEFINE_CONST_DICT(fat_vfs_locals_dict, fat_vfs_locals_dict_table);
+static MP_DEFINE_CONST_DICT(fat_vfs_locals_dict, fat_vfs_locals_dict_table);
 
-STATIC const mp_vfs_proto_t fat_vfs_proto = {
+static const mp_vfs_proto_t fat_vfs_proto = {
     // CIRCUITPY-CHANGE
     MP_PROTO_IMPLEMENT(MP_QSTR_protocol_vfs)
     .import_stat = fat_vfs_import_stat,

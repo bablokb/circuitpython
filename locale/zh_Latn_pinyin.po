@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: circuitpython-cn\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-01-04 12:55-0600\n"
-"PO-Revision-Date: 2024-08-19 18:09+0000\n"
+"PO-Revision-Date: 2024-09-06 04:09+0000\n"
 "Last-Translator: hexthat <hexthat@gmail.com>\n"
 "Language-Team: Chinese Hanyu Pinyin\n"
 "Language: zh_Latn_pinyin\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 5.7\n"
+"X-Generator: Weblate 5.8-dev\n"
 
 #: main.c
 msgid ""
@@ -429,6 +429,10 @@ msgstr "'data' xūyào zhěngshù cānshù"
 msgid "'label' requires 1 argument"
 msgstr "'label' xūyào 1 gè cānshù"
 
+#: py/emitnative.c
+msgid "'not' not implemented"
+msgstr ""
+
 #: py/compile.c
 msgid "'return' outside function"
 msgstr "'return' wèiyú hánshù zhīwài"
@@ -674,13 +678,13 @@ msgid "Buffer length %d too big. It must be less than %d"
 msgstr "Huǎnchōng qū chángdù%d tài dà. Tā bìxū xiǎoyú%d"
 
 #: ports/atmel-samd/common-hal/sdioio/SDCard.c
-#: ports/cxd56/common-hal/sdioio/SDCard.c shared-module/sdcardio/SDCard.c
-msgid "Buffer length must be a multiple of 512"
-msgstr "Huǎnchōngqū chángdù bìxū wéi 512 de bèishù"
-
+#: ports/cxd56/common-hal/sdioio/SDCard.c
+#: ports/espressif/common-hal/sdioio/SDCard.c
 #: ports/stm/common-hal/sdioio/SDCard.c shared-bindings/floppyio/__init__.c
-msgid "Buffer must be a multiple of 512 bytes"
-msgstr "Huǎnchōngqū bìxū shì 512 zìjié de bèishù"
+#: shared-module/sdcardio/SDCard.c
+#, c-format
+msgid "Buffer must be a multiple of %d bytes"
+msgstr ""
 
 #: shared-bindings/_bleio/PacketBuffer.c
 #, c-format
@@ -1212,11 +1216,13 @@ msgstr "zhōng duàn cuò wù."
 msgid "Interrupted by output function"
 msgstr "bèi shūchū gōngnéng zhōngduàn"
 
+#: ports/espressif/common-hal/_bleio/Service.c
 #: ports/espressif/common-hal/espulp/ULP.c
 #: ports/espressif/common-hal/microcontroller/Processor.c
 #: ports/mimxrt10xx/common-hal/audiobusio/__init__.c
 #: ports/mimxrt10xx/common-hal/pwmio/PWMOut.c
 #: ports/raspberrypi/bindings/picodvi/Framebuffer.c
+#: ports/raspberrypi/bindings/rp2pio/StateMachine.c
 #: ports/raspberrypi/common-hal/picodvi/Framebuffer_RP2040.c py/argcheck.c
 #: shared-bindings/digitalio/DigitalInOut.c
 #: shared-bindings/epaperdisplay/EPaperDisplay.c shared-bindings/pwmio/PWMOut.c
@@ -1336,6 +1342,7 @@ msgid "MAC address was invalid"
 msgstr "MAC dì zhǐ wú xiào"
 
 #: ports/espressif/common-hal/_bleio/Characteristic.c
+#: ports/espressif/common-hal/_bleio/Descriptor.c
 msgid "MITM security not supported"
 msgstr "bù zhīchí MITM ānquánxìng"
 
@@ -1568,9 +1575,10 @@ msgid "Not supported JPEG standard"
 msgstr "bù zhīchí JPEG biāozhǔn"
 
 #: ports/espressif/common-hal/paralleldisplaybus/ParallelBus.c
+#: ports/espressif/common-hal/sdioio/SDCard.c
 #, c-format
-msgid "Number of data_pins must be 8 or 16, not %d"
-msgstr "data_pins shù bì xū wéi 8 huò 16, ér bù shì %d"
+msgid "Number of data_pins must be %d or %d, not %d"
+msgstr ""
 
 #: shared-bindings/util.c
 msgid ""
@@ -1903,10 +1911,11 @@ msgstr "SDCard chūshǐhuà"
 msgid "SDIO GetCardInfo Error %d"
 msgstr "SDIO GetCardInfo Cuòwù %d"
 
+#: ports/espressif/common-hal/sdioio/SDCard.c
 #: ports/stm/common-hal/sdioio/SDCard.c
 #, c-format
-msgid "SDIO Init Error %d"
-msgstr "SDIO Init Cuòwù %d"
+msgid "SDIO Init Error %x"
+msgstr ""
 
 #: ports/espressif/common-hal/busio/SPI.c
 msgid "SPI configuration failed"
@@ -2285,14 +2294,12 @@ msgid "Update failed"
 msgstr "gēngxīn shībài"
 
 #: ports/espressif/common-hal/_bleio/Characteristic.c
-#: ports/espressif/common-hal/_bleio/Descriptor.c
 #: ports/nordic/common-hal/_bleio/Characteristic.c
 #: ports/nordic/common-hal/_bleio/Descriptor.c
 msgid "Value length != required fixed length"
 msgstr "Zhí chángdù != Suǒ xū de gùdìng chángdù"
 
 #: ports/espressif/common-hal/_bleio/Characteristic.c
-#: ports/espressif/common-hal/_bleio/Descriptor.c
 #: ports/nordic/common-hal/_bleio/Characteristic.c
 #: ports/nordic/common-hal/_bleio/Descriptor.c
 msgid "Value length > max_length"
@@ -2453,6 +2460,10 @@ msgstr "argsort cānshù bìxū shì ndarray"
 #: extmod/ulab/code/numpy/numerical.c
 msgid "argsort is not implemented for flattened arrays"
 msgstr "wèi wéi pīn hé shù zǔ shí xiàn argsort"
+
+#: extmod/ulab/code/numpy/random/random.c
+msgid "argument must be None, an integer or a tuple of integers"
+msgstr ""
 
 #: py/compile.c
 msgid "argument name reused"
@@ -2689,6 +2700,10 @@ msgid "can't do binary op between '%q' and '%q'"
 msgstr "bùnéng zài '%q' hé '%q' zhī jiān jìnxíng èr yuán yùnsuàn"
 
 #: py/emitnative.c
+msgid "can't do unary op of '%q'"
+msgstr ""
+
+#: py/emitnative.c
 msgid "can't implicitly convert '%q' to 'bool'"
 msgstr "bùnéng yǐn hán de jiāng '%q' zhuǎnhuàn wèi 'bool'"
 
@@ -2749,10 +2764,6 @@ msgstr "wúfǎ cóng shǒudòng zìduàn guīgé qiēhuàn dào zìdòng zìduà
 #: py/objcomplex.c
 msgid "can't truncate-divide a complex number"
 msgstr "shùliàng fùzá"
-
-#: extmod/moductypes.c
-msgid "can't unambiguously get sizeof scalar"
-msgstr "Wúfǎ míngquè de huòdé biāoliàng de dàxiǎo"
 
 #: extmod/modasyncio.c
 msgid "can't wait"
@@ -3148,7 +3159,8 @@ msgstr "hánshù quēshǎo suǒ xū guānjiàn zì cānshù '%q'"
 msgid "function missing required positional argument #%d"
 msgstr "hánshù quēshǎo suǒ xū de wèizhì cānshù #%d"
 
-#: py/argcheck.c py/bc.c py/objnamedtuple.c shared-bindings/time/__init__.c
+#: py/argcheck.c py/bc.c py/objnamedtuple.c shared-bindings/_eve/__init__.c
+#: shared-bindings/time/__init__.c
 #, c-format
 msgid "function takes %d positional arguments but %d were given"
 msgstr "hánshù xūyào %d gè wèizhì cānshù, dàn %d bèi gěi chū"
@@ -3300,7 +3312,7 @@ msgstr "shū rù bì xū shì 1D ndarray"
 msgid "input must be a dense ndarray"
 msgstr "shū rù bì xū shì mì jí de ndarray"
 
-#: extmod/ulab/code/user/user.c
+#: extmod/ulab/code/user/user.c shared-bindings/_eve/__init__.c
 msgid "input must be an ndarray"
 msgstr "shū rù bì xū shì ndarray"
 
@@ -3487,7 +3499,7 @@ msgstr "jǔzhèn bùshì zhèngdìng de"
 msgid "max_length must be 0-%d when fixed_length is %s"
 msgstr "max_length bìxū shì 0-%d, dāng fixed_length shì %s"
 
-#: extmod/ulab/code/ndarray.c
+#: extmod/ulab/code/ndarray.c extmod/ulab/code/numpy/random/random.c
 msgid "maximum number of dimensions is "
 msgstr "zuìdà wéi shù shì "
 
@@ -3574,7 +3586,7 @@ msgstr "míngchēng wèi dìngyì"
 
 #: py/qstr.c
 msgid "name too long"
-msgstr ""
+msgstr "míngchēng tàicháng"
 
 #: py/persistentcode.c
 msgid "native code in .mpy unsupported"
@@ -3629,7 +3641,7 @@ msgstr "zhǎo bù dào fēi běndì de bǎng dìng"
 msgid "no default packer"
 msgstr "wú mò rèn bāo zhuāng jī"
 
-#: extmod/modrandom.c
+#: extmod/modrandom.c extmod/ulab/code/numpy/random/random.c
 msgid "no default seed"
 msgstr "wú mò rèn zhǒng zi"
 
@@ -3838,6 +3850,10 @@ msgstr "ord() yùqí zìfú, dàn chángdù zìfú chuàn %d"
 msgid "out array is too small"
 msgstr "chū zhèn liè tài xiǎo"
 
+#: extmod/ulab/code/numpy/random/random.c
+msgid "out has wrong type"
+msgstr ""
+
 #: extmod/ulab/code/numpy/vector.c
 msgid "out keyword is not supported for complex dtype"
 msgstr "fùzá de dtype bù zhīchí out guānjiànzì"
@@ -3861,6 +3877,14 @@ msgstr "out bìxū shì fúdiǎn xíng dtype"
 #: shared-bindings/bitmaptools/__init__.c
 msgid "out of range of target"
 msgstr "mù biāo fàn wéi wài"
+
+#: extmod/ulab/code/numpy/random/random.c
+msgid "output array has wrong type"
+msgstr ""
+
+#: extmod/ulab/code/numpy/random/random.c
+msgid "output array must be contiguous"
+msgstr ""
 
 #: py/objint_mpz.c
 msgid "overflow converting long int to machine word"
@@ -3988,6 +4012,10 @@ msgstr "bù zhīchí jiǎoběn biānyì"
 msgid "set unsupported"
 msgstr "shè zhì bù shòu zhī chí"
 
+#: extmod/ulab/code/numpy/random/random.c
+msgid "shape must be None, and integer or a tuple of integers"
+msgstr ""
+
 #: extmod/ulab/code/ndarray.c
 msgid "shape must be integer or tuple of integers"
 msgstr "xíngzhuàng bìxū shì zhěngshù huò zhěngshù yuánzǔ"
@@ -4007,6 +4035,10 @@ msgstr "zhěngshù géshì shuōmíng fú 'c' bù yǔnxǔ shǐyòng fúhào"
 #: extmod/ulab/code/ulab_tools.c
 msgid "size is defined for ndarrays only"
 msgstr "dàxiǎo jǐn wèi ndarrays dìngyì"
+
+#: extmod/ulab/code/numpy/random/random.c
+msgid "size must match out.shape when used together"
+msgstr ""
 
 #: py/nativeglue.c
 msgid "slice unsupported"
@@ -4084,18 +4116,6 @@ msgstr "zìfú chuàn suǒyǐn chāochū fànwéi"
 msgid "string indices must be integers, not %s"
 msgstr "zìfú chuàn zhǐshù bìxū shì zhěngshù, ér bùshì %s"
 
-#: extmod/moductypes.c
-msgid "struct: can't index"
-msgstr "jié gòu: wú fǎ suǒ yǐn"
-
-#: extmod/moductypes.c
-msgid "struct: index out of range"
-msgstr "jiégòu: suǒyǐn chāochū fànwéi"
-
-#: extmod/moductypes.c
-msgid "struct: no fields"
-msgstr "jiégòu: méiyǒu zìduàn"
-
 #: py/objarray.c py/objstr.c
 msgid "substring not found"
 msgstr "wèi zhǎodào zi zìfú chuàn"
@@ -4107,10 +4127,6 @@ msgstr "chāojí() zhǎo bù dào zìjǐ"
 #: extmod/modjson.c
 msgid "syntax error in JSON"
 msgstr "JSON yǔfǎ cuòwù"
-
-#: extmod/moductypes.c
-msgid "syntax error in uctypes descriptor"
-msgstr "uctypes miáoshù fú zhōng de yǔfǎ cuòwù"
 
 #: extmod/modtime.c
 msgid "ticks interval overflow"
@@ -4219,10 +4235,6 @@ msgstr "lèixíng wèi 1 huò 3 gè cānshù"
 #: py/objint_longlong.c
 msgid "ulonglong too large"
 msgstr "tài kuān"
-
-#: py/emitnative.c
-msgid "unary op %q not implemented"
-msgstr "wèi zhíxíng %q"
 
 #: py/parse.c
 msgid "unexpected indent"
@@ -4418,6 +4430,38 @@ msgstr "zi bìxū wèi fú diǎn xíng"
 #: extmod/ulab/code/scipy/signal/signal.c
 msgid "zi must be of shape (n_section, 2)"
 msgstr "zi bìxū jùyǒu xíngzhuàng (n_section,2)"
+
+#~ msgid "Buffer length must be a multiple of 512"
+#~ msgstr "Huǎnchōngqū chángdù bìxū wéi 512 de bèishù"
+
+#~ msgid "Buffer must be a multiple of 512 bytes"
+#~ msgstr "Huǎnchōngqū bìxū shì 512 zìjié de bèishù"
+
+#, c-format
+#~ msgid "Number of data_pins must be 8 or 16, not %d"
+#~ msgstr "data_pins shù bì xū wéi 8 huò 16, ér bù shì %d"
+
+#, c-format
+#~ msgid "SDIO Init Error %d"
+#~ msgstr "SDIO Init Cuòwù %d"
+
+#~ msgid "can't unambiguously get sizeof scalar"
+#~ msgstr "Wúfǎ míngquè de huòdé biāoliàng de dàxiǎo"
+
+#~ msgid "struct: can't index"
+#~ msgstr "jié gòu: wú fǎ suǒ yǐn"
+
+#~ msgid "struct: index out of range"
+#~ msgstr "jiégòu: suǒyǐn chāochū fànwéi"
+
+#~ msgid "struct: no fields"
+#~ msgstr "jiégòu: méiyǒu zìduàn"
+
+#~ msgid "syntax error in uctypes descriptor"
+#~ msgstr "uctypes miáoshù fú zhōng de yǔfǎ cuòwù"
+
+#~ msgid "unary op %q not implemented"
+#~ msgstr "wèi zhíxíng %q"
 
 #~ msgid "Name too long"
 #~ msgstr "Míngchēng tài zhǎng"

@@ -92,8 +92,7 @@ bool espressif_board_reset_pin_number(gpio_num_t pin_number) {
     // Pull the speaker pin low to reduce noise on reset
     if (pin_number == 26) {
         // Turn on audio
-        gpio_set_direction(pin_number, GPIO_MODE_DEF_OUTPUT);
-        gpio_set_level(pin_number, false);
+        config_pin_as_output_with_level(pin_number, false);
         return true;
     }
     return false;

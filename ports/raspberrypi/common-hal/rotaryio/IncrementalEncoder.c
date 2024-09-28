@@ -76,8 +76,9 @@ void common_hal_rotaryio_incrementalencoder_construct(rotaryio_incrementalencode
         false, 32, false, // in settings
         false, // Not user-interruptible.
         0, MP_ARRAY_SIZE(encoder) - 1, // wrap settings
-        PIO_ANY_OFFSET
-        );
+        PIO_ANY_OFFSET,
+        PIO_FIFO_TYPE_DEFAULT,
+        PIO_MOV_STATUS_DEFAULT, PIO_MOV_N_DEFAULT);
 
     // We're guaranteed by the init code that some output will be available promptly
     uint8_t quiescent_state;

@@ -429,6 +429,10 @@ msgstr "'data' erfordert Integer-Argumente"
 msgid "'label' requires 1 argument"
 msgstr "'label' erfordert genau ein Argument"
 
+#: py/emitnative.c
+msgid "'not' not implemented"
+msgstr ""
+
 #: py/compile.c
 msgid "'return' outside function"
 msgstr "'return' außerhalb einer Funktion"
@@ -674,13 +678,13 @@ msgid "Buffer length %d too big. It must be less than %d"
 msgstr "Die Pufferlänge %d ist zu groß. Sie muss kleiner als %d sein"
 
 #: ports/atmel-samd/common-hal/sdioio/SDCard.c
-#: ports/cxd56/common-hal/sdioio/SDCard.c shared-module/sdcardio/SDCard.c
-msgid "Buffer length must be a multiple of 512"
-msgstr "Die Pufferlänge muss ein vielfaches von 512 sein"
-
+#: ports/cxd56/common-hal/sdioio/SDCard.c
+#: ports/espressif/common-hal/sdioio/SDCard.c
 #: ports/stm/common-hal/sdioio/SDCard.c shared-bindings/floppyio/__init__.c
-msgid "Buffer must be a multiple of 512 bytes"
-msgstr "Der Puffer muss ein vielfaches von 512 bytes sein"
+#: shared-module/sdcardio/SDCard.c
+#, c-format
+msgid "Buffer must be a multiple of %d bytes"
+msgstr ""
 
 #: shared-bindings/_bleio/PacketBuffer.c
 #, c-format
@@ -1210,11 +1214,13 @@ msgstr "Interrupt Fehler."
 msgid "Interrupted by output function"
 msgstr "Unterbrochen durch Ausgabefunktion"
 
+#: ports/espressif/common-hal/_bleio/Service.c
 #: ports/espressif/common-hal/espulp/ULP.c
 #: ports/espressif/common-hal/microcontroller/Processor.c
 #: ports/mimxrt10xx/common-hal/audiobusio/__init__.c
 #: ports/mimxrt10xx/common-hal/pwmio/PWMOut.c
 #: ports/raspberrypi/bindings/picodvi/Framebuffer.c
+#: ports/raspberrypi/bindings/rp2pio/StateMachine.c
 #: ports/raspberrypi/common-hal/picodvi/Framebuffer_RP2040.c py/argcheck.c
 #: shared-bindings/digitalio/DigitalInOut.c
 #: shared-bindings/epaperdisplay/EPaperDisplay.c shared-bindings/pwmio/PWMOut.c
@@ -1334,6 +1340,7 @@ msgid "MAC address was invalid"
 msgstr "MAC Adresse war ungültig"
 
 #: ports/espressif/common-hal/_bleio/Characteristic.c
+#: ports/espressif/common-hal/_bleio/Descriptor.c
 msgid "MITM security not supported"
 msgstr ""
 
@@ -1566,9 +1573,10 @@ msgid "Not supported JPEG standard"
 msgstr "Nicht unterstützter JPEG-Standard"
 
 #: ports/espressif/common-hal/paralleldisplaybus/ParallelBus.c
+#: ports/espressif/common-hal/sdioio/SDCard.c
 #, c-format
-msgid "Number of data_pins must be 8 or 16, not %d"
-msgstr "Anzahl von data_pins muss 8 oder 16 sein, nicht %d"
+msgid "Number of data_pins must be %d or %d, not %d"
+msgstr ""
 
 #: shared-bindings/util.c
 msgid ""
@@ -1905,10 +1913,11 @@ msgstr "SDCard-Initialisierung"
 msgid "SDIO GetCardInfo Error %d"
 msgstr "SDIO GetCardInfo-Fehler %d"
 
+#: ports/espressif/common-hal/sdioio/SDCard.c
 #: ports/stm/common-hal/sdioio/SDCard.c
 #, c-format
-msgid "SDIO Init Error %d"
-msgstr "SDIO-Init-Fehler %d"
+msgid "SDIO Init Error %x"
+msgstr ""
 
 #: ports/espressif/common-hal/busio/SPI.c
 msgid "SPI configuration failed"
@@ -2294,14 +2303,12 @@ msgid "Update failed"
 msgstr ""
 
 #: ports/espressif/common-hal/_bleio/Characteristic.c
-#: ports/espressif/common-hal/_bleio/Descriptor.c
 #: ports/nordic/common-hal/_bleio/Characteristic.c
 #: ports/nordic/common-hal/_bleio/Descriptor.c
 msgid "Value length != required fixed length"
 msgstr "Länge des Wertes != Erforderliche feste Länge"
 
 #: ports/espressif/common-hal/_bleio/Characteristic.c
-#: ports/espressif/common-hal/_bleio/Descriptor.c
 #: ports/nordic/common-hal/_bleio/Characteristic.c
 #: ports/nordic/common-hal/_bleio/Descriptor.c
 msgid "Value length > max_length"
@@ -2465,6 +2472,10 @@ msgstr "Das Argument argsort muss ein ndarray sein"
 #: extmod/ulab/code/numpy/numerical.c
 msgid "argsort is not implemented for flattened arrays"
 msgstr "argsort ist für flattened Arrays nicht implementiert"
+
+#: extmod/ulab/code/numpy/random/random.c
+msgid "argument must be None, an integer or a tuple of integers"
+msgstr ""
 
 #: py/compile.c
 msgid "argument name reused"
@@ -2703,6 +2714,10 @@ msgid "can't do binary op between '%q' and '%q'"
 msgstr "Eine binäre Operation zwischen '%q' und '%q' ist nicht möglich"
 
 #: py/emitnative.c
+msgid "can't do unary op of '%q'"
+msgstr ""
+
+#: py/emitnative.c
 msgid "can't implicitly convert '%q' to 'bool'"
 msgstr "Kann '%q' nicht implizit nach 'bool' konvertieren"
 
@@ -2768,10 +2783,6 @@ msgstr ""
 
 #: py/objcomplex.c
 msgid "can't truncate-divide a complex number"
-msgstr ""
-
-#: extmod/moductypes.c
-msgid "can't unambiguously get sizeof scalar"
 msgstr ""
 
 #: extmod/modasyncio.c
@@ -3166,7 +3177,8 @@ msgstr "Funktion vermisst benötigtes Schlüsselwort-Argumente '%q'"
 msgid "function missing required positional argument #%d"
 msgstr "Funktion vermisst benötigtes Argumente ohne Schlüsselwort #%d"
 
-#: py/argcheck.c py/bc.c py/objnamedtuple.c shared-bindings/time/__init__.c
+#: py/argcheck.c py/bc.c py/objnamedtuple.c shared-bindings/_eve/__init__.c
+#: shared-bindings/time/__init__.c
 #, c-format
 msgid "function takes %d positional arguments but %d were given"
 msgstr ""
@@ -3320,7 +3332,7 @@ msgstr "Eingabe muss ein 1D ndarray sein"
 msgid "input must be a dense ndarray"
 msgstr "Eingabe muss ein dichtes ndarray sein"
 
-#: extmod/ulab/code/user/user.c
+#: extmod/ulab/code/user/user.c shared-bindings/_eve/__init__.c
 msgid "input must be an ndarray"
 msgstr "Eingabe muss ein ndarray sein"
 
@@ -3510,7 +3522,7 @@ msgstr "Matrix ist nicht positiv definitiv"
 msgid "max_length must be 0-%d when fixed_length is %s"
 msgstr "max_length muss 0-%d sein, wenn fixed_length %s ist"
 
-#: extmod/ulab/code/ndarray.c
+#: extmod/ulab/code/ndarray.c extmod/ulab/code/numpy/random/random.c
 msgid "maximum number of dimensions is "
 msgstr "Maximale Anzahl an Dimensionen ist "
 
@@ -3652,7 +3664,7 @@ msgstr "Keine Bindung für nichtlokale Variable gefunden"
 msgid "no default packer"
 msgstr "kein Standard-Packer"
 
-#: extmod/modrandom.c
+#: extmod/modrandom.c extmod/ulab/code/numpy/random/random.c
 msgid "no default seed"
 msgstr "kein Standard-Seed"
 
@@ -3867,6 +3879,10 @@ msgstr ""
 msgid "out array is too small"
 msgstr "Ausgabe-Array ist zu klein"
 
+#: extmod/ulab/code/numpy/random/random.c
+msgid "out has wrong type"
+msgstr ""
+
 #: extmod/ulab/code/numpy/vector.c
 msgid "out keyword is not supported for complex dtype"
 msgstr "out-Schlüsselwort wird nicht unterstützt für komplexen dtype"
@@ -3890,6 +3906,14 @@ msgstr "out muss vom Typ dtype sein"
 #: shared-bindings/bitmaptools/__init__.c
 msgid "out of range of target"
 msgstr "Außerhalb des Bereichs des Ziels"
+
+#: extmod/ulab/code/numpy/random/random.c
+msgid "output array has wrong type"
+msgstr ""
+
+#: extmod/ulab/code/numpy/random/random.c
+msgid "output array must be contiguous"
+msgstr ""
 
 #: py/objint_mpz.c
 msgid "overflow converting long int to machine word"
@@ -4017,6 +4041,10 @@ msgstr "kompilieren von Skripten nicht unterstützt"
 msgid "set unsupported"
 msgstr "nicht unterstützt"
 
+#: extmod/ulab/code/numpy/random/random.c
+msgid "shape must be None, and integer or a tuple of integers"
+msgstr ""
+
 #: extmod/ulab/code/ndarray.c
 msgid "shape must be integer or tuple of integers"
 msgstr "Form muss eine Ganzzahl oder ein Tupel von Ganzzahlen sein"
@@ -4036,6 +4064,10 @@ msgstr "Vorzeichen mit ganzzahligem Formatbezeichner 'c' nicht erlaubt"
 #: extmod/ulab/code/ulab_tools.c
 msgid "size is defined for ndarrays only"
 msgstr "Größe ist nur für ndarrays definiert"
+
+#: extmod/ulab/code/numpy/random/random.c
+msgid "size must match out.shape when used together"
+msgstr ""
 
 #: py/nativeglue.c
 msgid "slice unsupported"
@@ -4110,18 +4142,6 @@ msgstr "String index außerhalb des Bereiches"
 msgid "string indices must be integers, not %s"
 msgstr "String indizes müssen Integer sein, nicht %s"
 
-#: extmod/moductypes.c
-msgid "struct: can't index"
-msgstr "struct: kann nicht indiziert werden"
-
-#: extmod/moductypes.c
-msgid "struct: index out of range"
-msgstr "struct: index außerhalb gültigen Bereichs"
-
-#: extmod/moductypes.c
-msgid "struct: no fields"
-msgstr "struct: keine Felder"
-
 #: py/objarray.c py/objstr.c
 msgid "substring not found"
 msgstr "substring nicht gefunden"
@@ -4133,10 +4153,6 @@ msgstr "super() kann self nicht finden"
 #: extmod/modjson.c
 msgid "syntax error in JSON"
 msgstr "Syntaxfehler in JSON"
-
-#: extmod/moductypes.c
-msgid "syntax error in uctypes descriptor"
-msgstr "Syntaxfehler in uctypes Deskriptor"
 
 #: extmod/modtime.c
 msgid "ticks interval overflow"
@@ -4245,10 +4261,6 @@ msgstr "Typ akzeptiert 1 oder 3 Argumente"
 #: py/objint_longlong.c
 msgid "ulonglong too large"
 msgstr "ulonglong zu groß"
-
-#: py/emitnative.c
-msgid "unary op %q not implemented"
-msgstr "Der unäre Operator %q ist nicht implementiert"
 
 #: py/parse.c
 msgid "unexpected indent"
@@ -4445,6 +4457,35 @@ msgstr "zi muss eine Gleitkommazahl sein"
 #: extmod/ulab/code/scipy/signal/signal.c
 msgid "zi must be of shape (n_section, 2)"
 msgstr "zi muss die Form (n_section, 2) haben"
+
+#~ msgid "Buffer length must be a multiple of 512"
+#~ msgstr "Die Pufferlänge muss ein vielfaches von 512 sein"
+
+#~ msgid "Buffer must be a multiple of 512 bytes"
+#~ msgstr "Der Puffer muss ein vielfaches von 512 bytes sein"
+
+#, c-format
+#~ msgid "Number of data_pins must be 8 or 16, not %d"
+#~ msgstr "Anzahl von data_pins muss 8 oder 16 sein, nicht %d"
+
+#, c-format
+#~ msgid "SDIO Init Error %d"
+#~ msgstr "SDIO-Init-Fehler %d"
+
+#~ msgid "struct: can't index"
+#~ msgstr "struct: kann nicht indiziert werden"
+
+#~ msgid "struct: index out of range"
+#~ msgstr "struct: index außerhalb gültigen Bereichs"
+
+#~ msgid "struct: no fields"
+#~ msgstr "struct: keine Felder"
+
+#~ msgid "syntax error in uctypes descriptor"
+#~ msgstr "Syntaxfehler in uctypes Deskriptor"
+
+#~ msgid "unary op %q not implemented"
+#~ msgstr "Der unäre Operator %q ist nicht implementiert"
 
 #~ msgid "Name too long"
 #~ msgstr "Name zu lang"

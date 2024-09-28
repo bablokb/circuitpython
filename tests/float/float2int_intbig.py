@@ -47,6 +47,7 @@ print("power of  2 test: %s" % (testpass and "passed" or "failed"))
 
 # TODO why does 10**12 fail this test for single precision float?
 testpass = True
+# CIRCUITPY-CHANGE: correct negation
 p10_rng = 9 if (ll_type == 0 and not is_64bit) else 11
 for i in range(0, p10_rng):
     digcnt = len(str(int(10.0**i))) - 1

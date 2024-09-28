@@ -22,7 +22,7 @@ THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 
-#CIRCUITPY-CHANGE:
+# CIRCUITPY-CHANGE:
 
 Unless specified otherwise (see below), the above license and copyright applies
 to all files derived from MicroPython in this repository.

@@ -43,6 +43,7 @@ extern void common_hal_mcu_enable_interrupts(void);
 // MicroPython-only options not used by CircuitPython, but present in various files
 // inherited from MicroPython, especially in extmod/
 #define MICROPY_ENABLE_DYNRUNTIME        (0)
+#define MICROPY_HW_ENABLE_USB_RUNTIME_DEVICE (0)
 #define MICROPY_PY_BLUETOOTH             (0)
 #define MICROPY_PY_LWIP_SLIP             (0)
 #define MICROPY_PY_OS_DUPTERM            (0)
@@ -142,6 +143,7 @@ extern void common_hal_mcu_enable_interrupts(void);
 #define MICROPY_PY_SYS                   (CIRCUITPY_SYS)
 #define MICROPY_PY_SYS_MAXSIZE           (1)
 #define MICROPY_PY_SYS_STDFILES          (1)
+#define MICROPY_PY_UCTYPES               (0)
 #define MICROPY_PY___FILE__              (1)
 
 #define MICROPY_QSTR_BYTES_IN_HASH       (1)
@@ -356,6 +358,11 @@ extern const struct _mp_obj_module_t nvm_module;
 
 #ifndef ULAB_SUPPORTS_COMPLEX
 #define ULAB_SUPPORTS_COMPLEX (0)
+#endif
+
+// The random module is fairly large.
+#ifndef ULAB_NUMPY_HAS_RANDOM_MODULE
+#define ULAB_NUMPY_HAS_RANDOM_MODULE (0)
 #endif
 
 #if CIRCUITPY_ULAB

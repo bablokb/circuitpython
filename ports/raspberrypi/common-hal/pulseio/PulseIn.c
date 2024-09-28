@@ -54,7 +54,9 @@ void common_hal_pulseio_pulsein_construct(pulseio_pulsein_obj_t *self,
         true, 32, true, // RX auto pull every 32 bits. shift left to output msb first
         false, // Not user-interruptible.
         0, -1, // wrap settings
-        PIO_ANY_OFFSET);
+        PIO_ANY_OFFSET,
+        PIO_FIFO_TYPE_DEFAULT,
+        PIO_MOV_STATUS_DEFAULT, PIO_MOV_N_DEFAULT);
 
     common_hal_pulseio_pulsein_pause(self);
 

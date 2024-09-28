@@ -12,6 +12,9 @@ CROSS_COMPILE = riscv32-esp-elf-
 else ifeq ($(IDF_TARGET),esp32c3)
 IDF_TARGET_ARCH = riscv
 CROSS_COMPILE = riscv32-esp-elf-
+else ifeq ($(IDF_TARGET),esp32p4)
+IDF_TARGET_ARCH = riscv
+CROSS_COMPILE = riscv32-esp-elf-
 else ifeq ($(IDF_TARGET),esp32c6)
 IDF_TARGET_ARCH = riscv
 CROSS_COMPILE = riscv32-esp-elf-
@@ -84,6 +87,8 @@ INC += \
 	-isystem esp-idf/components/esp_driver_ledc/include \
 	-isystem esp-idf/components/esp_driver_pcnt/include \
 	-isystem esp-idf/components/esp_driver_rmt/include \
+	-isystem esp-idf/components/esp_driver_sdio/include \
+	-isystem esp-idf/components/esp_driver_sdmmc/include \
 	-isystem esp-idf/components/esp_driver_spi/include \
 	-isystem esp-idf/components/esp_driver_tsens/include \
 	-isystem esp-idf/components/esp_driver_uart/include \
@@ -125,6 +130,8 @@ INC += \
 	-isystem esp-idf/components/mbedtls/port/include \
 	-isystem esp-idf/components/newlib/platform_include \
 	-isystem esp-idf/components/nvs_flash/include \
+	-isystem esp-idf/components/sdio/include \
+	-isystem esp-idf/components/sdmmc/include \
 	-isystem esp-idf/components/soc/include \
 	-isystem esp-idf/components/soc/$(IDF_TARGET)/include \
 	-isystem esp-idf/components/spi_flash/include \
@@ -155,7 +162,6 @@ CFLAGS += -DSTACK_CANARY_VALUE=0xa5a5a5a5
 # one must provide `-u` arguments to state the symbols are missing. This would
 # normally happen implicitly by another function calling to these.
 REGISTRATION_FUNCTIONS = \
-	-u newlib_include_pthread_impl \
 	-u ld_include_highint_hdl \
 	-u __cxx_fatal_exception \
 	-u esp_app_desc \
@@ -169,8 +175,10 @@ REGISTRATION_FUNCTIONS = \
 	-u newlib_include_syscalls_impl \
 	-u newlib_include_pthread_impl \
 	-u newlib_include_assert_impl \
-	-u newlib_include_getentropy_impl \
-	-u newlib_include_init_funcs
+	-u newlib_include_init_funcs \
+	-u include_esp_phy_override \
+	-u vfs_include_syscalls_impl
+
 
 #Debugging/Optimization
 ifeq ($(DEBUG), 1)
@@ -214,7 +222,13 @@ ifeq ($(IDF_TARGET_ARCH),xtensa)
 
 CFLAGS += -mlongcalls -isystem esp-idf/components/xtensa/deprecated_include/ -Wno-error=cpp
 else ifeq ($(IDF_TARGET_ARCH),riscv)
+
+ifeq ($(IDF_TARGET),esp32p4)
+CFLAGS += -march=rv32imafc_zicsr_zifencei_xesppie -mabi=ilp32f
+else
 CFLAGS += -march=rv32imac_zicsr_zifencei
+endif
+
 LDFLAGS += \
 	-Lesp-idf/components/riscv/ld \
 	-Trom.api.ld
@@ -287,6 +301,16 @@ LDFLAGS += \
 CHIP_COMPONENTS = \
 	esp_driver_tsens
 
+else ifeq ($(IDF_TARGET),esp32p4)
+LDFLAGS += \
+	-Tesp32p4.rom.newlib.ld \
+	-Tesp32p4.rom.systimer.ld \
+	-Tesp32p4.rom.wdt.ld
+
+
+CHIP_COMPONENTS = \
+	esp_driver_tsens
+
 else ifeq ($(IDF_TARGET),esp32h2)
 LDFLAGS += \
 	-Tesp32h2.rom.heap.ld \
@@ -311,7 +335,6 @@ CHIP_COMPONENTS = \
 else ifeq ($(IDF_TARGET),esp32s3)
 LDFLAGS += \
 	-Tesp32s3.rom.newlib.ld \
-	-Tesp32s3.rom.newlib-time.ld \
 	-Tesp32s3.rom.version.ld \
 	-Tesp32s3.rom.systimer.ld \
 	-Tesp32s3.rom.wdt.ld
@@ -338,6 +361,8 @@ else ifeq ($(IDF_TARGET),esp32c3)
 CFLAGS += -DCFG_TUSB_MCU=OPT_MCU_ESP32C3
 else ifeq ($(IDF_TARGET),esp32c6)
 CFLAGS += -DCFG_TUSB_MCU=OPT_MCU_ESP32C6
+else ifeq ($(IDF_TARGET),esp32p4)
+CFLAGS += -DCFG_TUSB_MCU=OPT_MCU_ESP32P4
 else ifeq ($(IDF_TARGET),esp32h2)
 CFLAGS += -DCFG_TUSB_MCU=OPT_MCU_ESP32H2
 else ifeq ($(IDF_TARGET),esp32s2)
@@ -578,7 +603,10 @@ update-board-sdkconfig: $(BUILD)/esp-idf/config/sdkconfig.h
 	python tools/update_sdkconfig.py --board=$(BOARD) --debug=$(DEBUG)
 
 BINARY_WIFI_BLOBS = libcore.a libespnow.a libnet80211.a libpp.a libsmartconfig.a
-BINARY_BLOBS = esp-idf/components/esp_phy/lib/$(IDF_TARGET)/libphy.a
+
+ifneq ($(IDF_TARGET),esp32p4)
+	BINARY_BLOBS = esp-idf/components/esp_phy/lib/$(IDF_TARGET)/libphy.a
+endif
 ifneq ($(CIRCUITPY_WIFI),0)
 	BINARY_BLOBS += esp-idf/components/esp_coex/lib/$(IDF_TARGET)/libcoexist.a $(addprefix esp-idf/components/esp_wifi/lib/$(IDF_TARGET)/, $(BINARY_WIFI_BLOBS))
 	ifneq ($(IDF_TARGET),esp32c2)
@@ -590,9 +618,9 @@ ifeq ($(IDF_TARGET),esp32)
 BINARY_BLOBS += esp-idf/components/esp_phy/lib/$(IDF_TARGET)/librtc.a
 endif
 
-ESP_IDF_COMPONENTS_LINK = $(IDF_TARGET_ARCH) $(CHIP_COMPONENTS) app_update bootloader_support driver esp_driver_gpio esp_driver_gptimer esp_driver_ledc esp_driver_spi esp_driver_uart efuse esp_adc esp_app_format esp_common esp_event esp_hw_support esp_mm esp_partition esp_phy esp_pm esp_ringbuf esp_rom esp_system esp_timer freertos hal heap log newlib nvs_flash pthread soc spi_flash vfs esp_vfs_console
+ESP_IDF_COMPONENTS_LINK = $(IDF_TARGET_ARCH) $(CHIP_COMPONENTS) app_update bootloader_support driver esp_driver_gpio esp_driver_gptimer esp_driver_ledc esp_driver_spi esp_driver_uart efuse esp_adc esp_app_format esp_common esp_event esp_hw_support esp_mm esp_partition esp_pm esp_ringbuf esp_rom esp_system esp_timer freertos hal heap log newlib nvs_flash pthread soc spi_flash vfs esp_vfs_console
 ifneq ($(CIRCUITPY_WIFI),0)
-	ESP_IDF_COMPONENTS_LINK += esp_coex esp_netif esp-tls esp_wifi lwip mbedtls mdns wpa_supplicant
+	ESP_IDF_COMPONENTS_LINK += esp_coex esp_netif esp-tls esp_wifi lwip mbedtls mdns wpa_supplicant esp_phy
 endif
 ifneq ($(CIRCUITPY_BLEIO),0)
 	BLE_IMPL_esp32 := esp32
@@ -603,7 +631,7 @@ ifneq ($(CIRCUITPY_BLEIO),0)
 	BLE_IMPL_esp32h2 := libble
 	BLE_IMPL = $(BLE_IMPL_$(IDF_TARGET))
 
-	ESP_IDF_COMPONENTS_LINK += bt
+	ESP_IDF_COMPONENTS_LINK += bt esp_phy
 	ifeq ($(BLE_IMPL),esp32)
 		# BLE will hang the ESP32 and trigger an interrupt watchdog without this undefined symbol at
 		# link because a weak version of the interrupt that BLE uses will be linked incorrectly.
@@ -636,6 +664,9 @@ endif
 ifneq ($(CIRCUITPY_USB_DEVICE),0)
 	ESP_IDF_COMPONENTS_LINK += usb
 endif
+ifneq ($(CIRCUITPY_SDIOIO),0)
+	ESP_IDF_COMPONENTS_LINK += sdmmc esp_driver_sdmmc
+endif
 
 ESP_IDF_COMPONENTS_EXPANDED = $(foreach component, $(ESP_IDF_COMPONENTS_LINK), $(BUILD)/esp-idf/esp-idf/$(component)/lib$(component).a)
 
@@ -665,6 +696,8 @@ else ifeq ($(IDF_TARGET),esp32c3)
 BOOTLOADER_OFFSET = 0x0
 else ifeq ($(IDF_TARGET),esp32c6)
 BOOTLOADER_OFFSET = 0x0
+else ifeq ($(IDF_TARGET),esp32p4)
+BOOTLOADER_OFFSET = 0x2000
 else ifeq ($(IDF_TARGET),esp32s3)
 BOOTLOADER_OFFSET = 0x0
 else ifeq ($(IDF_TARGET),esp32s2)

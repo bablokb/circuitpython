@@ -46,8 +46,7 @@ static mp_obj_t mdns_server_make_new(const mp_obj_type_t *type, size_t n_args, s
     }
     #endif
 
-    mdns_server_obj_t *self = m_new_obj_with_finaliser(mdns_server_obj_t);
-    self->base.type = &mdns_server_type;
+    mdns_server_obj_t *self = mp_obj_malloc_with_finaliser(mdns_server_obj_t, &mdns_server_type);
     common_hal_mdns_server_construct(self, args[ARG_network_interface].u_obj);
 
     return MP_OBJ_FROM_PTR(self);

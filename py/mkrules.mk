@@ -11,7 +11,7 @@ ifeq ($(MICROPY_PREVIEW_VERSION_2),1)
 CFLAGS += -DMICROPY_PREVIEW_VERSION_2=1
 endif
 
-HELP_BUILD_ERROR ?= "See \033[1;31mhttps://github.com/micropython/micropython/wiki/Build-Troubleshooting\033[0m"
+HELP_BUILD_ERROR ?= "See \033[1;31mhttps://learn.adafruit.com/building-circuitpython; Adafruit Discord \#circuitpython-dev\033[0m"
 HELP_MPY_LIB_SUBMODULE ?= "\033[1;31mError: micropython-lib submodule is not initialized.\033[0m Run 'make submodules'"
 
 # Extra deps that need to happen before object compilation.
@@ -178,7 +178,7 @@ $(HEADER_BUILD):
 ifneq ($(MICROPY_MPYCROSS_DEPENDENCY),)
 # to automatically build mpy-cross, if needed
 $(MICROPY_MPYCROSS_DEPENDENCY):
-	$(MAKE) -C $(abspath $(dir $@)..)
+	$(MAKE) -C "$(abspath $(dir $@)..)"
 endif
 
 ifneq ($(FROZEN_DIR),)

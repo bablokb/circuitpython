@@ -64,8 +64,7 @@ static mp_obj_t frequencyio_frequencyin_make_new(const mp_obj_type_t *type, size
 
     const uint16_t capture_period = args[ARG_capture_period].u_int;
 
-    frequencyio_frequencyin_obj_t *self = m_new_obj_with_finaliser(frequencyio_frequencyin_obj_t);
-    self->base.type = &frequencyio_frequencyin_type;
+    frequencyio_frequencyin_obj_t *self = mp_obj_malloc_with_finaliser(frequencyio_frequencyin_obj_t, &frequencyio_frequencyin_type);
     common_hal_frequencyio_frequencyin_construct(self, pin, capture_period);
 
     return MP_OBJ_FROM_PTR(self);

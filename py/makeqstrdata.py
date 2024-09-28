@@ -233,11 +233,11 @@ static_qstr_list = [
     "zip",
 ]
 
-# Additional QSTRs that must have index <255 because they are stored in
-# `mp_binary_op_method_name` and `mp_unary_op_method_name` (see py/objtype.c).
+# Additional QSTRs that must have index <255 because they are stored as `byte` values.
 # These are not part of the .mpy compatibility list, but we place them in the
 # fixed unsorted pool (i.e. QDEF0) to ensure their indices are small.
-operator_qstr_list = {
+unsorted_qstr_list = {
+    # From py/objtype.c: used in the `mp_binary_op_method_name` and `mp_unary_op_method_name` tables.
     "__bool__",
     "__pos__",
     "__neg__",
@@ -296,6 +296,13 @@ operator_qstr_list = {
     "__get__",
     "__set__",
     "__delete__",
+    # From py/scope.c: used in `scope_simple_name_table` table.
+    # Note: "<module>" is already in `static_qstr_list`.
+    "<lambda>",
+    "<listcomp>",
+    "<dictcomp>",
+    "<setcomp>",
+    "<genexpr>",
 }
 
 
@@ -305,7 +312,8 @@ def compute_hash(qstr, bytes_hash):
     for b in qstr:
         hash = (hash * 33) ^ b
     # Make sure that valid hash is never zero, zero means "hash not computed"
-    return (hash & ((1 << (8 * bytes_hash)) - 1)) or 1
+    # if bytes_hash is zero, assume a 16-bit mask (to match qstr.c)
+    return (hash & ((1 << (8 * (bytes_hash or 2))) - 1)) or 1
 
 
 def qstr_escape(qst):
@@ -433,10 +441,10 @@ def print_qstr_data(qcfgs, qstrs, translations):
     total_qstr_size = 0
 
     # add remaining qstrs to the sorted (by value) pool (unless they're in
-    # operator_qstr_list, in which case add them to the unsorted pool)
+    # unsorted_qstr_list, in which case add them to the unsorted pool)
     for ident, qstr in sorted(qstrs.values(), key=lambda x: x[1]):
         qbytes = make_bytes(cfg_bytes_len, cfg_bytes_hash, qstr)
-        pool = 0 if qstr in operator_qstr_list else 1
+        pool = 0 if qstr in unsorted_qstr_list else 1
         print("QDEF%d(MP_QSTR_%s, %s)" % (pool, ident, qbytes))
 
         # CIRCUITPY-CHANGE: track total qstr size

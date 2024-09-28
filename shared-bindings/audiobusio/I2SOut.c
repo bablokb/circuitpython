@@ -97,8 +97,7 @@ static mp_obj_t audiobusio_i2sout_make_new(const mp_obj_type_t *type, size_t n_a
     const mcu_pin_obj_t *data = validate_obj_is_free_pin(args[ARG_data].u_obj, MP_QSTR_data);
     const mcu_pin_obj_t *main_clock = validate_obj_is_free_pin_or_none(args[ARG_main_clock].u_obj, MP_QSTR_main_clock);
 
-    audiobusio_i2sout_obj_t *self = m_new_obj_with_finaliser(audiobusio_i2sout_obj_t);
-    self->base.type = &audiobusio_i2sout_type;
+    audiobusio_i2sout_obj_t *self = mp_obj_malloc_with_finaliser(audiobusio_i2sout_obj_t, &audiobusio_i2sout_type);
     common_hal_audiobusio_i2sout_construct(self, bit_clock, word_select, data, main_clock, args[ARG_left_justified].u_bool);
 
     return MP_OBJ_FROM_PTR(self);

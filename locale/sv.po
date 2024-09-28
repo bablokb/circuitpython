@@ -428,6 +428,10 @@ msgstr "'data' kräver heltalsargument"
 msgid "'label' requires 1 argument"
 msgstr "'label' kräver 1 argument"
 
+#: py/emitnative.c
+msgid "'not' not implemented"
+msgstr ""
+
 #: py/compile.c
 msgid "'return' outside function"
 msgstr "'return' utanför funktion"
@@ -673,13 +677,13 @@ msgid "Buffer length %d too big. It must be less than %d"
 msgstr "Buffertlängd %d för stor. Den måste vara mindre än %d"
 
 #: ports/atmel-samd/common-hal/sdioio/SDCard.c
-#: ports/cxd56/common-hal/sdioio/SDCard.c shared-module/sdcardio/SDCard.c
-msgid "Buffer length must be a multiple of 512"
-msgstr "Buffertlängd måste vara en multipel av 512"
-
+#: ports/cxd56/common-hal/sdioio/SDCard.c
+#: ports/espressif/common-hal/sdioio/SDCard.c
 #: ports/stm/common-hal/sdioio/SDCard.c shared-bindings/floppyio/__init__.c
-msgid "Buffer must be a multiple of 512 bytes"
-msgstr "Bufferten måste vara en multipel av 512 byte"
+#: shared-module/sdcardio/SDCard.c
+#, c-format
+msgid "Buffer must be a multiple of %d bytes"
+msgstr ""
 
 #: shared-bindings/_bleio/PacketBuffer.c
 #, c-format
@@ -1206,11 +1210,13 @@ msgstr "Interrupt-fel."
 msgid "Interrupted by output function"
 msgstr "Avbruten av utgångsfunktion"
 
+#: ports/espressif/common-hal/_bleio/Service.c
 #: ports/espressif/common-hal/espulp/ULP.c
 #: ports/espressif/common-hal/microcontroller/Processor.c
 #: ports/mimxrt10xx/common-hal/audiobusio/__init__.c
 #: ports/mimxrt10xx/common-hal/pwmio/PWMOut.c
 #: ports/raspberrypi/bindings/picodvi/Framebuffer.c
+#: ports/raspberrypi/bindings/rp2pio/StateMachine.c
 #: ports/raspberrypi/common-hal/picodvi/Framebuffer_RP2040.c py/argcheck.c
 #: shared-bindings/digitalio/DigitalInOut.c
 #: shared-bindings/epaperdisplay/EPaperDisplay.c shared-bindings/pwmio/PWMOut.c
@@ -1330,6 +1336,7 @@ msgid "MAC address was invalid"
 msgstr "MAC-adressen var ogiltig"
 
 #: ports/espressif/common-hal/_bleio/Characteristic.c
+#: ports/espressif/common-hal/_bleio/Descriptor.c
 msgid "MITM security not supported"
 msgstr ""
 
@@ -1562,9 +1569,10 @@ msgid "Not supported JPEG standard"
 msgstr "JPEG-standard stöds ej"
 
 #: ports/espressif/common-hal/paralleldisplaybus/ParallelBus.c
+#: ports/espressif/common-hal/sdioio/SDCard.c
 #, c-format
-msgid "Number of data_pins must be 8 or 16, not %d"
-msgstr "Antal data_pins måste vara 8 eller 16, inte %d"
+msgid "Number of data_pins must be %d or %d, not %d"
+msgstr ""
 
 #: shared-bindings/util.c
 msgid ""
@@ -1897,10 +1905,11 @@ msgstr "SDCard start"
 msgid "SDIO GetCardInfo Error %d"
 msgstr "SDIO GetCardInfo-fel %d"
 
+#: ports/espressif/common-hal/sdioio/SDCard.c
 #: ports/stm/common-hal/sdioio/SDCard.c
 #, c-format
-msgid "SDIO Init Error %d"
-msgstr "SDIO Init-fel %d"
+msgid "SDIO Init Error %x"
+msgstr ""
 
 #: ports/espressif/common-hal/busio/SPI.c
 msgid "SPI configuration failed"
@@ -2279,14 +2288,12 @@ msgid "Update failed"
 msgstr ""
 
 #: ports/espressif/common-hal/_bleio/Characteristic.c
-#: ports/espressif/common-hal/_bleio/Descriptor.c
 #: ports/nordic/common-hal/_bleio/Characteristic.c
 #: ports/nordic/common-hal/_bleio/Descriptor.c
 msgid "Value length != required fixed length"
 msgstr "Värdets längde ! = krävd fast längd"
 
 #: ports/espressif/common-hal/_bleio/Characteristic.c
-#: ports/espressif/common-hal/_bleio/Descriptor.c
 #: ports/nordic/common-hal/_bleio/Characteristic.c
 #: ports/nordic/common-hal/_bleio/Descriptor.c
 msgid "Value length > max_length"
@@ -2447,6 +2454,10 @@ msgstr "argumentet argsort måste vara en ndarray"
 #: extmod/ulab/code/numpy/numerical.c
 msgid "argsort is not implemented for flattened arrays"
 msgstr "argsort är inte implementerad för tillplattade matriser"
+
+#: extmod/ulab/code/numpy/random/random.c
+msgid "argument must be None, an integer or a tuple of integers"
+msgstr ""
 
 #: py/compile.c
 msgid "argument name reused"
@@ -2683,6 +2694,10 @@ msgid "can't do binary op between '%q' and '%q'"
 msgstr "kan inte göra binära op mellan '%q' och '%q'"
 
 #: py/emitnative.c
+msgid "can't do unary op of '%q'"
+msgstr ""
+
+#: py/emitnative.c
 msgid "can't implicitly convert '%q' to 'bool'"
 msgstr "kan inte implicit konvertera '%q' till 'bool'"
 
@@ -2745,10 +2760,6 @@ msgstr ""
 #: py/objcomplex.c
 msgid "can't truncate-divide a complex number"
 msgstr "kan inte trunker-dividera ett komplext tal"
-
-#: extmod/moductypes.c
-msgid "can't unambiguously get sizeof scalar"
-msgstr "kan inte entydigt få fram storleken på skalären"
 
 #: extmod/modasyncio.c
 msgid "can't wait"
@@ -3141,7 +3152,8 @@ msgstr "funktionen saknar det obligatoriska nyckelordsargumentet '%q'"
 msgid "function missing required positional argument #%d"
 msgstr "funktionen saknar det obligatoriska positionsargumentet #%d"
 
-#: py/argcheck.c py/bc.c py/objnamedtuple.c shared-bindings/time/__init__.c
+#: py/argcheck.c py/bc.c py/objnamedtuple.c shared-bindings/_eve/__init__.c
+#: shared-bindings/time/__init__.c
 #, c-format
 msgid "function takes %d positional arguments but %d were given"
 msgstr "funktionen kräver %d positionsargument men %d angavs"
@@ -3293,7 +3305,7 @@ msgstr "indata måste vara en 1D ndarray"
 msgid "input must be a dense ndarray"
 msgstr "indata måste vara en dense ndarray"
 
-#: extmod/ulab/code/user/user.c
+#: extmod/ulab/code/user/user.c shared-bindings/_eve/__init__.c
 msgid "input must be an ndarray"
 msgstr "indata måste vara en ndarray"
 
@@ -3481,7 +3493,7 @@ msgstr "matrisen är inte positiv bestämd"
 msgid "max_length must be 0-%d when fixed_length is %s"
 msgstr "max_length måste vara 0-%d när fixed_length är %s"
 
-#: extmod/ulab/code/ndarray.c
+#: extmod/ulab/code/ndarray.c extmod/ulab/code/numpy/random/random.c
 msgid "maximum number of dimensions is "
 msgstr "maximalt antal dimensioner är "
 
@@ -3623,7 +3635,7 @@ msgstr "ingen bindning för ickelokal hittad"
 msgid "no default packer"
 msgstr "ingen standardpackare"
 
-#: extmod/modrandom.c
+#: extmod/modrandom.c extmod/ulab/code/numpy/random/random.c
 msgid "no default seed"
 msgstr "inget standard seed"
 
@@ -3832,6 +3844,10 @@ msgstr "ord() förväntade sig ett tecken, men en sträng med längden %d hittad
 msgid "out array is too small"
 msgstr "matrisen för out är för liten"
 
+#: extmod/ulab/code/numpy/random/random.c
+msgid "out has wrong type"
+msgstr ""
+
 #: extmod/ulab/code/numpy/vector.c
 msgid "out keyword is not supported for complex dtype"
 msgstr "nyckelordet out stöds inte för komplex dtyp"
@@ -3855,6 +3871,14 @@ msgstr "out måste vara av float dtype"
 #: shared-bindings/bitmaptools/__init__.c
 msgid "out of range of target"
 msgstr "utanför räckvidd för target"
+
+#: extmod/ulab/code/numpy/random/random.c
+msgid "output array has wrong type"
+msgstr ""
+
+#: extmod/ulab/code/numpy/random/random.c
+msgid "output array must be contiguous"
+msgstr ""
 
 #: py/objint_mpz.c
 msgid "overflow converting long int to machine word"
@@ -3982,6 +4006,10 @@ msgstr "skriptkompilering stöds inte"
 msgid "set unsupported"
 msgstr "set stöds inte"
 
+#: extmod/ulab/code/numpy/random/random.c
+msgid "shape must be None, and integer or a tuple of integers"
+msgstr ""
+
 #: extmod/ulab/code/ndarray.c
 msgid "shape must be integer or tuple of integers"
 msgstr "shape måste vara ett heltal eller en tupel av heltal"
@@ -4001,6 +4029,10 @@ msgstr "tecken tillåts inte med heltalsformatspecificeraren 'c'"
 #: extmod/ulab/code/ulab_tools.c
 msgid "size is defined for ndarrays only"
 msgstr "storlek är enbart definierad ndarrays"
+
+#: extmod/ulab/code/numpy/random/random.c
+msgid "size must match out.shape when used together"
+msgstr ""
 
 #: py/nativeglue.c
 msgid "slice unsupported"
@@ -4075,18 +4107,6 @@ msgstr "strängindex utanför intervallet"
 msgid "string indices must be integers, not %s"
 msgstr "strängindex måste vara heltal, inte %s"
 
-#: extmod/moductypes.c
-msgid "struct: can't index"
-msgstr "struct: kan inte indexera"
-
-#: extmod/moductypes.c
-msgid "struct: index out of range"
-msgstr "struct: index utanför intervallet"
-
-#: extmod/moductypes.c
-msgid "struct: no fields"
-msgstr "struct: inga fält"
-
 #: py/objarray.c py/objstr.c
 msgid "substring not found"
 msgstr "det gick inte att hitta delsträng"
@@ -4098,10 +4118,6 @@ msgstr "super() kan inte hitta self"
 #: extmod/modjson.c
 msgid "syntax error in JSON"
 msgstr "syntaxfel i JSON"
-
-#: extmod/moductypes.c
-msgid "syntax error in uctypes descriptor"
-msgstr "syntaxfel i uctypes deskriptor"
 
 #: extmod/modtime.c
 msgid "ticks interval overflow"
@@ -4210,10 +4226,6 @@ msgstr "typen tar 1 eller 3 argument"
 #: py/objint_longlong.c
 msgid "ulonglong too large"
 msgstr "ulonglong för stor"
-
-#: py/emitnative.c
-msgid "unary op %q not implemented"
-msgstr "binär op %q är inte implementerad"
 
 #: py/parse.c
 msgid "unexpected indent"
@@ -4406,6 +4418,38 @@ msgstr "zi måste vara av typ float"
 #: extmod/ulab/code/scipy/signal/signal.c
 msgid "zi must be of shape (n_section, 2)"
 msgstr "zi måste vara i formen (n_section, 2)"
+
+#~ msgid "Buffer length must be a multiple of 512"
+#~ msgstr "Buffertlängd måste vara en multipel av 512"
+
+#~ msgid "Buffer must be a multiple of 512 bytes"
+#~ msgstr "Bufferten måste vara en multipel av 512 byte"
+
+#, c-format
+#~ msgid "Number of data_pins must be 8 or 16, not %d"
+#~ msgstr "Antal data_pins måste vara 8 eller 16, inte %d"
+
+#, c-format
+#~ msgid "SDIO Init Error %d"
+#~ msgstr "SDIO Init-fel %d"
+
+#~ msgid "can't unambiguously get sizeof scalar"
+#~ msgstr "kan inte entydigt få fram storleken på skalären"
+
+#~ msgid "struct: can't index"
+#~ msgstr "struct: kan inte indexera"
+
+#~ msgid "struct: index out of range"
+#~ msgstr "struct: index utanför intervallet"
+
+#~ msgid "struct: no fields"
+#~ msgstr "struct: inga fält"
+
+#~ msgid "syntax error in uctypes descriptor"
+#~ msgstr "syntaxfel i uctypes deskriptor"
+
+#~ msgid "unary op %q not implemented"
+#~ msgstr "binär op %q är inte implementerad"
 
 #~ msgid "Name too long"
 #~ msgstr "Name är för långt"

@@ -26,6 +26,7 @@
 
 #include "py/mpstate.h"
 
+// CIRCUITPY-CHANGE: avoid warning
 #if defined(MICROPY_NLR_POWERPC) && MICROPY_NLR_POWERPC
 
 #undef nlr_push
@@ -114,7 +115,6 @@ NORETURN void nlr_jump(void *val) {
         "blr ;"
         :
         : "r" (&top->regs)
-        // CIRCUITPY-CHANGE: MicroPython caught up with this change in https://github.com/micropython/micropython/pull/14126
         : "memory"
         );
 

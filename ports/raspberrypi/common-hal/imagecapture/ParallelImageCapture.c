@@ -101,7 +101,9 @@ void common_hal_imagecapture_parallelimagecapture_construct(imagecapture_paralle
         true, 32, true,  // in settings
         false, // Not user-interruptible.
         2, 5, // wrap settings
-        PIO_ANY_OFFSET);
+        PIO_ANY_OFFSET,
+        PIO_FIFO_TYPE_DEFAULT,
+        PIO_MOV_STATUS_DEFAULT, PIO_MOV_N_DEFAULT);
 }
 
 void common_hal_imagecapture_parallelimagecapture_deinit(imagecapture_parallelimagecapture_obj_t *self) {

@@ -201,20 +201,16 @@ bool board_requests_safe_mode(void) {
 
 bool espressif_board_reset_pin_number(gpio_num_t pin_number) {
     if (pin_number == 13) {
-        gpio_set_direction(pin_number, GPIO_MODE_DEF_OUTPUT);
-        gpio_set_level(pin_number, false);
+        config_pin_as_output_with_level(pin_number, false);
         return true;
     }
     return false;
 }
 
 void reset_board(void) {
-    gpio_set_direction(13, GPIO_MODE_OUTPUT);
-    gpio_set_level(13, false);
-
+    config_pin_as_output_with_level(13, false);
 }
 
 void board_deinit(void) {
-    gpio_set_direction(13, GPIO_MODE_DEF_OUTPUT);
-    gpio_set_level(13, false);
+    config_pin_as_output_with_level(13, false);
 }

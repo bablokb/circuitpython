@@ -44,7 +44,7 @@ enum {
     DUMP_MODE_TO_STREAM = 2,
 };
 
-STATIC mp_obj_t mod_json_dump_helper(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args, unsigned int mode) {
+static mp_obj_t mod_json_dump_helper(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args, unsigned int mode) {
     enum { ARG_separators };
     static const mp_arg_t allowed_args[] = {
         { MP_QSTR_separators, MP_ARG_KW_ONLY | MP_ARG_OBJ, {.u_rom_obj = MP_ROM_NONE} },
@@ -81,34 +81,34 @@ STATIC mp_obj_t mod_json_dump_helper(size_t n_args, const mp_obj_t *pos_args, mp
     }
 }
 
-STATIC mp_obj_t mod_json_dump(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
+static mp_obj_t mod_json_dump(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
     return mod_json_dump_helper(n_args, pos_args, kw_args, DUMP_MODE_TO_STREAM);
 }
-STATIC MP_DEFINE_CONST_FUN_OBJ_KW(mod_json_dump_obj, 2, mod_json_dump);
+static MP_DEFINE_CONST_FUN_OBJ_KW(mod_json_dump_obj, 2, mod_json_dump);
 
-STATIC mp_obj_t mod_json_dumps(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
+static mp_obj_t mod_json_dumps(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
     return mod_json_dump_helper(n_args, pos_args, kw_args, DUMP_MODE_TO_STRING);
 }
-STATIC MP_DEFINE_CONST_FUN_OBJ_KW(mod_json_dumps_obj, 1, mod_json_dumps);
+static MP_DEFINE_CONST_FUN_OBJ_KW(mod_json_dumps_obj, 1, mod_json_dumps);
 
 #else
 
-STATIC mp_obj_t mod_json_dump(mp_obj_t obj, mp_obj_t stream) {
+static mp_obj_t mod_json_dump(mp_obj_t obj, mp_obj_t stream) {
     mp_get_stream_raise(stream, MP_STREAM_OP_WRITE);
     mp_print_t print = {MP_OBJ_TO_PTR(stream), mp_stream_write_adaptor};
     mp_obj_print_helper(&print, obj, PRINT_JSON);
     return mp_const_none;
 }
-STATIC MP_DEFINE_CONST_FUN_OBJ_2(mod_json_dump_obj, mod_json_dump);
+static MP_DEFINE_CONST_FUN_OBJ_2(mod_json_dump_obj, mod_json_dump);
 
-STATIC mp_obj_t mod_json_dumps(mp_obj_t obj) {
+static mp_obj_t mod_json_dumps(mp_obj_t obj) {
     vstr_t vstr;
     mp_print_t print;
     vstr_init_print(&vstr, 8, &print);
     mp_obj_print_helper(&print, obj, PRINT_JSON);
     return mp_obj_new_str_from_utf8_vstr(&vstr);
 }
-STATIC MP_DEFINE_CONST_FUN_OBJ_1(mod_json_dumps_obj, mod_json_dumps);
+static MP_DEFINE_CONST_FUN_OBJ_1(mod_json_dumps_obj, mod_json_dumps);
 
 #endif
 
@@ -147,7 +147,7 @@ typedef struct _json_stream_t {
 #define S_CUR(s) ((s).cur)
 #define S_NEXT(s) (json_stream_next(&(s)))
 
-STATIC byte json_stream_next(json_stream_t *s) {
+static byte json_stream_next(json_stream_t *s) {
     mp_uint_t ret = s->read(s->stream_obj, &s->cur, 1, &s->errcode);
     // CIRCUITPY-CHANGE
     JSON_DEBUG("  usjon_stream_next err:%2d cur: %c \n", s->errcode, s->cur);
@@ -167,7 +167,7 @@ STATIC byte json_stream_next(json_stream_t *s) {
 
 #define CIRCUITPY_JSON_READ_CHUNK_SIZE 64
 
-STATIC mp_uint_t json_python_readinto(mp_obj_t obj, void *buf, mp_uint_t size, int *errcode) {
+static mp_uint_t json_python_readinto(mp_obj_t obj, void *buf, mp_uint_t size, int *errcode) {
     (void)size;  // Ignore size because we know it's always 1.
     json_stream_t *s = obj;
 
@@ -190,7 +190,7 @@ STATIC mp_uint_t json_python_readinto(mp_obj_t obj, void *buf, mp_uint_t size, i
     return 1;
 }
 
-STATIC mp_obj_t _mod_json_load(mp_obj_t stream_obj, bool return_first_json) {
+static mp_obj_t _mod_json_load(mp_obj_t stream_obj, bool return_first_json) {
     const mp_stream_p_t *stream_p = mp_proto_get(0, stream_obj);
     json_stream_t s;
     uint8_t character_buffer[CIRCUITPY_JSON_READ_CHUNK_SIZE];
@@ -431,12 +431,12 @@ fail:
 }
 
 // CIRCUITPY-CHANGE
-STATIC mp_obj_t mod_json_load(mp_obj_t stream_obj) {
+static mp_obj_t mod_json_load(mp_obj_t stream_obj) {
     return _mod_json_load(stream_obj, true);
 }
-STATIC MP_DEFINE_CONST_FUN_OBJ_1(mod_json_load_obj, mod_json_load);
+static MP_DEFINE_CONST_FUN_OBJ_1(mod_json_load_obj, mod_json_load);
 
-STATIC mp_obj_t mod_json_loads(mp_obj_t obj) {
+static mp_obj_t mod_json_loads(mp_obj_t obj) {
     mp_buffer_info_t bufinfo;
     mp_get_buffer_raise(obj, &bufinfo, MP_BUFFER_READ);
     vstr_t vstr = {bufinfo.len, bufinfo.len, (char *)bufinfo.buf, true};
@@ -444,9 +444,9 @@ STATIC mp_obj_t mod_json_loads(mp_obj_t obj) {
     // CIRCUITPY-CHANGE
     return _mod_json_load(MP_OBJ_FROM_PTR(&sio), false);
 }
-STATIC MP_DEFINE_CONST_FUN_OBJ_1(mod_json_loads_obj, mod_json_loads);
+static MP_DEFINE_CONST_FUN_OBJ_1(mod_json_loads_obj, mod_json_loads);
 
-STATIC const mp_rom_map_elem_t mp_module_json_globals_table[] = {
+static const mp_rom_map_elem_t mp_module_json_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_json) },
     { MP_ROM_QSTR(MP_QSTR_dump), MP_ROM_PTR(&mod_json_dump_obj) },
     { MP_ROM_QSTR(MP_QSTR_dumps), MP_ROM_PTR(&mod_json_dumps_obj) },
@@ -454,7 +454,7 @@ STATIC const mp_rom_map_elem_t mp_module_json_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR_loads), MP_ROM_PTR(&mod_json_loads_obj) },
 };
 
-STATIC MP_DEFINE_CONST_DICT(mp_module_json_globals, mp_module_json_globals_table);
+static MP_DEFINE_CONST_DICT(mp_module_json_globals, mp_module_json_globals_table);
 
 const mp_obj_module_t mp_module_json = {
     .base = { &mp_type_module },

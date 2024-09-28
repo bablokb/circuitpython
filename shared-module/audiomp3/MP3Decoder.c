@@ -482,7 +482,7 @@ audioio_get_buffer_result_t audiomp3_mp3file_get_buffer(audiomp3_mp3file_obj_t *
         if (DO_DEBUG) {
             mp_printf(&mp_plat_print, "%s:%d err=%d\n", __FILE__, __LINE__, err);
         }
-        if (err != ERR_MP3_INDATA_UNDERFLOW && err != ERR_MP3_MAINDATA_UNDERFLOW) {
+        if (self->eof || (err != ERR_MP3_INDATA_UNDERFLOW && err != ERR_MP3_MAINDATA_UNDERFLOW)) {
             memset(buffer, 0, self->frame_buffer_size);
             *buffer_length = 0;
             self->eof = true;

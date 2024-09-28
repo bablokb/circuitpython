@@ -21,7 +21,13 @@
 #include "py/objproperty.h"
 #include "py/runtime.h"
 
-
+//| import memorymap
+//|
+//| FifoType = Literal["auto", "txrx", "tx", "rx", "txput", "txget", "putget"]
+//| FifoType_piov0 = Literal["auto", "txrx", "tx", "rx"]
+//| MovStatusType = Literal["txfifo", "rxfifo", "irq"]
+//| MovStatusType_piov0 = Literal["txfifo"]
+//|
 //| class StateMachine:
 //|     """A single PIO StateMachine
 //|
@@ -41,6 +47,7 @@
 //|         program: ReadableBuffer,
 //|         frequency: int,
 //|         *,
+//|         pio_version: int = 0,
 //|         may_exec: Optional[ReadableBuffer] = None,
 //|         init: Optional[ReadableBuffer] = None,
 //|         first_out_pin: Optional[microcontroller.Pin] = None,
@@ -74,8 +81,13 @@
 //|         wrap_target: int = 0,
 //|         wrap: int = -1,
 //|         offset: int = -1,
+//|         fifo_type: FifoType = "auto",
+//|         mov_status_type: MovStatusType = "txfifo",
+//|         mov_status_n: int = 0,
 //|     ) -> None:
 //|         """Construct a StateMachine object on the given pins with the given program.
+//|
+//|         The following parameters are usually supplied directly:
 //|
 //|         :param ReadableBuffer program: the program to run with the state machine
 //|         :param int frequency: the target clock frequency of the state machine. Actual may be less. Use 0 for system clock speed.
@@ -86,60 +98,77 @@
 //|             for instance, if there is no ``in`` or ``push`` instruction, then the `StateMachine` is configured without a receive FIFO.
 //|             In this case, passing a ``may_exec`` program containing an ``in`` instruction such as ``in x``, a receive FIFO will be configured.
 //|         :param ~microcontroller.Pin first_out_pin: the first pin to use with the OUT instruction
-//|         :param int out_pin_count: the count of consecutive pins to use with OUT starting at first_out_pin
 //|         :param int initial_out_pin_state: the initial output value for out pins starting at first_out_pin
 //|         :param int initial_out_pin_direction: the initial output direction for out pins starting at first_out_pin
 //|         :param ~microcontroller.Pin first_in_pin: the first pin to use with the IN instruction
-//|         :param int in_pin_count: the count of consecutive pins to use with IN starting at first_in_pin
 //|         :param int pull_in_pin_up: a 1-bit in this mask sets pull up on the corresponding in pin
 //|         :param int pull_in_pin_down: a 1-bit in this mask sets pull down on the corresponding in pin. Setting both pulls enables a "bus keep" function, i.e. a weak pull to whatever is current high/low state of GPIO.
 //|         :param ~microcontroller.Pin first_set_pin: the first pin to use with the SET instruction
-//|         :param int set_pin_count: the count of consecutive pins to use with SET starting at first_set_pin
 //|         :param int initial_set_pin_state: the initial output value for set pins starting at first_set_pin
 //|         :param int initial_set_pin_direction: the initial output direction for set pins starting at first_set_pin
 //|         :param ~microcontroller.Pin first_sideset_pin: the first pin to use with a side set
-//|         :param int sideset_pin_count: the count of consecutive pins to use with a side set starting at first_sideset_pin. Does not include sideset enable
 //|         :param int initial_sideset_pin_state: the initial output value for sideset pins starting at first_sideset_pin
 //|         :param int initial_sideset_pin_direction: the initial output direction for sideset pins starting at first_sideset_pin
 //|         :param bool sideset_enable: True when the top sideset bit is to enable. This should be used with the ".side_set # opt" directive
 //|         :param ~microcontroller.Pin jmp_pin: the pin which determines the branch taken by JMP PIN instructions
 //|         :param ~digitalio.Pull jmp_pin_pull: The pull value for the jmp pin, default is no pull.
 //|         :param bool exclusive_pin_use: When True, do not share any pins with other state machines. Pins are never shared with other peripherals
-//|         :param bool auto_pull: When True, automatically load data from the tx FIFO into the
-//|             output shift register (OSR) when an OUT instruction shifts more than pull_threshold bits
-//|         :param int pull_threshold: Number of bits to shift before loading a new value into the OSR from the tx FIFO
-//|         :param bool out_shift_right: When True, data is shifted out the right side (LSB) of the
-//|             OSR. It is shifted out the left (MSB) otherwise. NOTE! This impacts data alignment
-//|             when the number of bytes is not a power of two (1, 2 or 4 bytes).
 //|         :param bool wait_for_txstall: When True, writing data out will block until the TX FIFO and OSR are empty
 //|             and an instruction is stalled waiting for more data. When False, data writes won't
 //|             wait for the OSR to empty (only the TX FIFO) so make sure you give enough time before
 //|             deiniting or stopping the state machine.
-//|         :param bool auto_push: When True, automatically save data from input shift register
-//|              (ISR) into the rx FIFO when an IN instruction shifts more than push_threshold bits
-//|         :param int push_threshold: Number of bits to shift before saving the ISR value to the RX FIFO
-//|         :param bool in_shift_right: When True, data is shifted into the right side (LSB) of the
-//|             ISR. It is shifted into the left (MSB) otherwise. NOTE! This impacts data alignment
-//|             when the number of bytes is not a power of two (1, 2 or 4 bytes).
 //|         :param bool user_interruptible: When True (the default),
 //|             `write()`, `readinto()`, and `write_readinto()` can be interrupted by a ctrl-C.
 //|             This is useful when developing a PIO program: if there is an error in the program
 //|             that causes an infinite loop, you will be able to interrupt the loop.
 //|             However, if you are writing to a device that can get into a bad state if a read or write
 //|             is interrupted, you may want to set this to False after your program has been vetted.
+//|         :param int offset: A specific offset in the state machine's program memory where the program must be loaded.
+//|             The default value, -1, allows the program to be loaded at any offset.
+//|             This is appropriate for most programs.
+//|
+//|         The following parameters are usually set via assembler directives and passed using a ``**program.pio_kwargs`` argument but may also be specified directly:
+//|
+//|         :param int out_pin_count: the count of consecutive pins to use with OUT starting at first_out_pin
+//|         :param int in_pin_count: the count of consecutive pins to use with IN starting at first_in_pin
+//|         :param int set_pin_count: the count of consecutive pins to use with SET starting at first_set_pin
+//|         :param int sideset_pin_count: the count of consecutive pins to use with a side set starting at first_sideset_pin. Does not include sideset enable
+//|         :param int pio_version: The version of the PIO peripheral required by the program. The constructor will raise an error if the actual hardware is not compatible with this program version.
+//|         :param bool auto_push: When True, automatically save data from input shift register
+//|              (ISR) into the rx FIFO when an IN instruction shifts more than push_threshold bits
+//|         :param int push_threshold: Number of bits to shift before saving the ISR value to the RX FIFO
+//|         :param bool in_shift_right: When True, data is shifted into the right side (LSB) of the
+//|             ISR. It is shifted into the left (MSB) otherwise. NOTE! This impacts data alignment
+//|             when the number of bytes is not a power of two (1, 2 or 4 bytes).
+//|         :param bool auto_pull: When True, automatically load data from the tx FIFO into the
+//|             output shift register (OSR) when an OUT instruction shifts more than pull_threshold bits
+//|         :param int pull_threshold: Number of bits to shift before loading a new value into the OSR from the tx FIFO
+//|         :param bool out_shift_right: When True, data is shifted out the right side (LSB) of the
+//|             OSR. It is shifted out the left (MSB) otherwise. NOTE! This impacts data alignment
+//|             when the number of bytes is not a power of two (1, 2 or 4 bytes).
 //|         :param int wrap_target: The target instruction number of automatic wrap. Defaults to the first instruction of the program.
 //|         :param int wrap: The instruction after which to wrap to the ``wrap``
 //|             instruction. As a special case, -1 (the default) indicates the
 //|             last instruction of the program.
-//|         :param int offset: A specific offset in the state machine's program memory where the program must be loaded.
-//|             The default value, -1, allows the program to be loaded at any offset.
-//|             This is appropriate for most programs.
+//|         :param FifoType fifo_type: How the program accessess the FIFOs. PIO version 0 only supports a subset of values.
+//|         :param MovStatusType mov_status_type: What condition the ``mov status`` instruction checks. PIO version 0 only supports a subset of values.
+//|         :param MovStatusType mov_status_n: The FIFO depth or IRQ the ``mov status`` instruction checks for. For ``mov_status irq`` this includes the encoding of the ``next``/``prev`` selection bits.
 //|         """
 //|         ...
 
+static int one_of(qstr_short_t what, mp_obj_t arg, size_t n_options, const qstr_short_t options[], const int values[]) {
+    for (size_t i = 0; i < n_options; i++) {
+        mp_obj_t option_str = MP_OBJ_NEW_QSTR(options[i]);
+        if (mp_obj_equal(arg, option_str)) {
+            return values[i];
+        }
+    }
+    mp_raise_ValueError_varg(MP_ERROR_TEXT("Invalid %q"), what);
+}
+
 static mp_obj_t rp2pio_statemachine_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *all_args) {
     rp2pio_statemachine_obj_t *self = mp_obj_malloc(rp2pio_statemachine_obj_t, &rp2pio_statemachine_type);
-    enum { ARG_program, ARG_frequency, ARG_init, ARG_may_exec,
+    enum { ARG_program, ARG_frequency, ARG_init, ARG_pio_version, ARG_may_exec,
            ARG_first_out_pin, ARG_out_pin_count, ARG_initial_out_pin_state, ARG_initial_out_pin_direction,
            ARG_first_in_pin, ARG_in_pin_count,
            ARG_pull_in_pin_up, ARG_pull_in_pin_down,
@@ -154,11 +183,15 @@ static mp_obj_t rp2pio_statemachine_make_new(const mp_obj_type_t *type, size_t n
            ARG_user_interruptible,
            ARG_wrap_target,
            ARG_wrap,
-           ARG_offset, };
+           ARG_offset,
+           ARG_fifo_type,
+           ARG_mov_status_type,
+           ARG_mov_status_n, };
     static const mp_arg_t allowed_args[] = {
         { MP_QSTR_program, MP_ARG_REQUIRED | MP_ARG_OBJ },
         { MP_QSTR_frequency, MP_ARG_REQUIRED | MP_ARG_INT },
         { MP_QSTR_init, MP_ARG_KW_ONLY | MP_ARG_OBJ, {.u_obj = mp_const_none} },
+        { MP_QSTR_pio_version, MP_ARG_KW_ONLY | MP_ARG_INT, {.u_int = 0} },
         { MP_QSTR_may_exec, MP_ARG_KW_ONLY | MP_ARG_OBJ, {.u_obj = mp_const_none} },
 
         { MP_QSTR_first_out_pin, MP_ARG_KW_ONLY | MP_ARG_OBJ, {.u_obj = mp_const_none} },
@@ -198,10 +231,17 @@ static mp_obj_t rp2pio_statemachine_make_new(const mp_obj_type_t *type, size_t n
 
         { MP_QSTR_wrap_target, MP_ARG_KW_ONLY | MP_ARG_INT, {.u_int = 0} },
         { MP_QSTR_wrap, MP_ARG_KW_ONLY | MP_ARG_INT, {.u_int = -1} },
-        { MP_QSTR_offset, MP_ARG_KW_ONLY | MP_ARG_INT, {.u_int = -1} },
+
+        { MP_QSTR_offset, MP_ARG_KW_ONLY | MP_ARG_INT, {.u_int = PIO_ANY_OFFSET} },
+
+        { MP_QSTR_fifo_type, MP_ARG_KW_ONLY | MP_ARG_OBJ, {.u_obj = MP_ROM_QSTR(MP_QSTR_auto) } },
+        { MP_QSTR_mov_status_type, MP_ARG_KW_ONLY | MP_ARG_OBJ, {.u_obj = MP_ROM_QSTR(MP_QSTR_txfifo) } },
+        { MP_QSTR_mov_status_n, MP_ARG_KW_ONLY | MP_ARG_INT, {.u_int = 0} },
     };
     mp_arg_val_t args[MP_ARRAY_SIZE(allowed_args)];
     mp_arg_parse_all_kw_array(n_args, n_kw, all_args, MP_ARRAY_SIZE(allowed_args), allowed_args, args);
+
+    (void)mp_arg_validate_int_max(args[ARG_pio_version].u_int, PICO_PIO_VERSION, MP_QSTR_out_pin_count);
 
     mp_buffer_info_t bufinfo;
     mp_get_buffer_raise(args[ARG_program].u_obj, &bufinfo, MP_BUFFER_READ);
@@ -254,6 +294,33 @@ static mp_obj_t rp2pio_statemachine_make_new(const mp_obj_type_t *type, size_t n
     int wrap = args[ARG_wrap].u_int;
     int wrap_target = args[ARG_wrap_target].u_int;
 
+    const qstr_short_t fifo_alternatives[] = { MP_QSTR_auto, MP_QSTR_txrx, MP_QSTR_tx, MP_QSTR_rx,
+                                               #if PICO_PIO_VERSION > 0
+                                               MP_QSTR_txput, MP_QSTR_txget, MP_QSTR_putget
+                                               #endif
+    };
+    const int fifo_values[] = { PIO_FIFO_JOIN_AUTO, PIO_FIFO_JOIN_NONE, PIO_FIFO_JOIN_TX, PIO_FIFO_JOIN_RX,
+                                #if PICO_PIO_VERSION > 0
+                                PIO_FIFO_JOIN_TXPUT, PIO_FIFO_JOIN_TXGET, PIO_FIFO_JOIN_PUTGET
+                                #endif
+    };
+    MP_STATIC_ASSERT(MP_ARRAY_SIZE(fifo_alternatives) == MP_ARRAY_SIZE(fifo_values));
+
+    int fifo_type = one_of(MP_QSTR_fifo_type, args[ARG_fifo_type].u_obj, MP_ARRAY_SIZE(fifo_alternatives), fifo_alternatives, fifo_values);
+
+    const qstr_short_t mov_status_alternatives[] = { MP_QSTR_txfifo, MP_QSTR_rxfifo,
+                                                     #if PICO_PIO_VERSION > 0
+                                                     MP_QSTR_IRQ
+                                                     #endif
+    };
+    const int mov_status_values[] = { STATUS_TX_LESSTHAN, STATUS_RX_LESSTHAN,
+                                      #if PICO_PIO_VERSION > 0
+                                      STATUS_IRQ_SET
+                                      #endif
+    };
+    MP_STATIC_ASSERT(MP_ARRAY_SIZE(mov_status_alternatives) == MP_ARRAY_SIZE(mov_status_values));
+    int mov_status_type = one_of(MP_QSTR_mov_status_type, args[ARG_mov_status_type].u_obj, MP_ARRAY_SIZE(mov_status_alternatives), mov_status_alternatives, mov_status_values);
+
     common_hal_rp2pio_statemachine_construct(self,
         bufinfo.buf, bufinfo.len / 2,
         args[ARG_frequency].u_int,
@@ -271,7 +338,10 @@ static mp_obj_t rp2pio_statemachine_make_new(const mp_obj_type_t *type, size_t n
         args[ARG_wait_for_txstall].u_bool,
         args[ARG_auto_push].u_bool, push_threshold, args[ARG_in_shift_right].u_bool,
         args[ARG_user_interruptible].u_bool,
-        wrap_target, wrap, args[ARG_offset].u_int);
+        wrap_target, wrap, args[ARG_offset].u_int,
+        fifo_type,
+        mov_status_type, args[ARG_mov_status_n].u_int
+        );
     return MP_OBJ_FROM_PTR(self);
 }
 
@@ -813,6 +883,61 @@ MP_DEFINE_CONST_FUN_OBJ_1(rp2pio_statemachine_get_in_waiting_obj, rp2pio_statema
 MP_PROPERTY_GETTER(rp2pio_statemachine_in_waiting_obj,
     (mp_obj_t)&rp2pio_statemachine_get_in_waiting_obj);
 
+//|     offset: int
+//|     """The instruction offset where the program was actually loaded"""
+//|
+
+static mp_obj_t rp2pio_statemachine_obj_get_offset(mp_obj_t self_in) {
+    rp2pio_statemachine_obj_t *self = MP_OBJ_TO_PTR(self_in);
+    check_for_deinit(self);
+    return MP_OBJ_NEW_SMALL_INT(common_hal_rp2pio_statemachine_get_offset(self));
+}
+MP_DEFINE_CONST_FUN_OBJ_1(rp2pio_statemachine_get_offset_obj, rp2pio_statemachine_obj_get_offset);
+
+MP_PROPERTY_GETTER(rp2pio_statemachine_offset_obj,
+    (mp_obj_t)&rp2pio_statemachine_get_offset_obj);
+
+//|     pc: int
+//|     """The current program counter of the state machine"""
+//|
+
+static mp_obj_t rp2pio_statemachine_obj_get_pc(mp_obj_t self_in) {
+    rp2pio_statemachine_obj_t *self = MP_OBJ_TO_PTR(self_in);
+    check_for_deinit(self);
+    return MP_OBJ_NEW_SMALL_INT(common_hal_rp2pio_statemachine_get_pc(self));
+}
+MP_DEFINE_CONST_FUN_OBJ_1(rp2pio_statemachine_get_pc_obj, rp2pio_statemachine_obj_get_pc);
+
+MP_PROPERTY_GETTER(rp2pio_statemachine_pc_obj,
+    (mp_obj_t)&rp2pio_statemachine_get_pc_obj);
+
+//|     rxfifo: memorymap.AddressRange
+//|     """Access the state machine's rxfifo directly
+//|
+//|     If the state machine's fifo mode is ``txput`` then accessing this object
+//|     reads values stored by the ``mov rxfifo[], isr`` PIO instruction, and the
+//|     result of modifying it is undefined.
+//|
+//|     If the state machine's fifo mode is ``txget`` then modifying this object
+//|     writes values accessed by the ``mov osr, rxfifo[]`` PIO instruction, and
+//|     the result of accessing it is undefined.
+//|
+//|     If this state machine's mode is something else, then the property's value is `None`.
+//|
+//|     Note: Since the ``txput`` and ``txget`` fifo mode does not exist on RP2040, this property will always be `None`."""
+//|
+
+static mp_obj_t rp2pio_statemachine_obj_get_rxfifo(mp_obj_t self_in) {
+    rp2pio_statemachine_obj_t *self = MP_OBJ_TO_PTR(self_in);
+    check_for_deinit(self);
+    return common_hal_rp2pio_statemachine_get_rxfifo(self);
+}
+MP_DEFINE_CONST_FUN_OBJ_1(rp2pio_statemachine_get_rxfifo_obj, rp2pio_statemachine_obj_get_rxfifo);
+
+MP_PROPERTY_GETTER(rp2pio_statemachine_rxfifo_obj,
+    (mp_obj_t)&rp2pio_statemachine_get_rxfifo_obj);
+
+
 static const mp_rom_map_elem_t rp2pio_statemachine_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_deinit), MP_ROM_PTR(&rp2pio_statemachine_deinit_obj) },
     { MP_ROM_QSTR(MP_QSTR___enter__), MP_ROM_PTR(&default___enter___obj) },
@@ -836,6 +961,11 @@ static const mp_rom_map_elem_t rp2pio_statemachine_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_rxstall), MP_ROM_PTR(&rp2pio_statemachine_rxstall_obj) },
     { MP_ROM_QSTR(MP_QSTR_txstall), MP_ROM_PTR(&rp2pio_statemachine_txstall_obj) },
     { MP_ROM_QSTR(MP_QSTR_in_waiting), MP_ROM_PTR(&rp2pio_statemachine_in_waiting_obj) },
+
+    { MP_ROM_QSTR(MP_QSTR_offset), MP_ROM_PTR(&rp2pio_statemachine_offset_obj) },
+    { MP_ROM_QSTR(MP_QSTR_pc), MP_ROM_PTR(&rp2pio_statemachine_pc_obj) },
+
+    { MP_ROM_QSTR(MP_QSTR_rxfifo), MP_ROM_PTR(&rp2pio_statemachine_rxfifo_obj) },
 };
 static MP_DEFINE_CONST_DICT(rp2pio_statemachine_locals_dict, rp2pio_statemachine_locals_dict_table);
 
