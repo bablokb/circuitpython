@@ -15,26 +15,46 @@ void common_hal_audiodelays_echo_construct(audiodelays_echo_obj_t *self, uint32_
     uint32_t buffer_size, uint8_t bits_per_sample,
     bool samples_signed, uint8_t channel_count, uint32_t sample_rate) {
 
-    self->bits_per_sample = bits_per_sample;
-    self->samples_signed = samples_signed;
-    self->channel_count = channel_count;
-    self->sample_rate = sample_rate;
+    // Basic settings every effect and audio sample has
+    // These are the effects values, not the source sample(s)
+    self->bits_per_sample = bits_per_sample; // Most common is 16, but 8 is also supported in many places
+    self->samples_signed = samples_signed; // Are the samples we provide signed (common is true)
+    self->channel_count = channel_count; // Channels can be 1 for mono or 2 for stereo
+    self->sample_rate = sample_rate; // Sample rate for the effect, this generally needs to match all audio objects
 
-    self->buffer_len = buffer_size;
+    // To smooth things out as CircuitPython is doing other tasks most audio objects have a buffer
+    // A double buffer is set up here so the audio output can use DMA on buffer 1 while we
+    // write to and create buffer 2.
+    // This buffer is what is passed to the audio component that plays the effect.
+    // Samples are set sequentially. For stereo audio they are passed L/R/L/R/...
+    self->buffer_len = buffer_size; // in bytes
+
     self->buffer[0] = m_malloc(self->buffer_len);
     if (self->buffer[0] == NULL) {
         common_hal_audiodelays_echo_deinit(self);
         m_malloc_fail(self->buffer_len);
     }
     memset(self->buffer[0], 0, self->buffer_len);
+
     self->buffer[1] = m_malloc(self->buffer_len);
     if (self->buffer[1] == NULL) {
         common_hal_audiodelays_echo_deinit(self);
         m_malloc_fail(self->buffer_len);
     }
     memset(self->buffer[1], 0, self->buffer_len);
-    self->last_buf_idx = 1;
 
+    self->last_buf_idx = 1; // Which buffer to use first, toggle between 0 and 1
+
+    // Initialize other values most effects will need.
+    self->sample = NULL; // The current playing sample
+    self->sample_remaining_buffer = NULL; // Pointer to the start of the sample buffer we have not played
+    self->sample_buffer_length = 0; // How many samples do we have left to play (these may be 16 bit!)
+    self->loop = false; // When the sample is done do we loop to the start again or stop (e.g. in a wav file)
+    self->more_data = false; // Is there still more data to read from the sample or did we finish
+
+    // The below section sets up the echo effect's starting values. For a different effect this section will change
+
+    // If we did not receive a BlockInput we need to create a default float value
     if (decay == MP_OBJ_NULL) {
         decay = mp_obj_new_float(0.7);
     }
@@ -50,9 +70,13 @@ void common_hal_audiodelays_echo_construct(audiodelays_echo_obj_t *self, uint32_
     }
     synthio_block_assign_slot(mix, &self->mix, MP_QSTR_mix);
 
-    // Set the echo buffer for the max possible delay
+    // Many effects may need buffers of what was played this shows how it was done for the echo
+    // A maximum length buffer was created and then the current echo length can be dynamically changes
+    // without having to reallocate a large chunk of memory.
+
+    // Allocate the echo buffer for the max possible delay
     self->max_delay_ms = max_delay_ms;
-    self->max_echo_buffer_len = self->sample_rate / 1000.0f * max_delay_ms * (self->channel_count * (self->bits_per_sample / 8));
+    self->max_echo_buffer_len = self->sample_rate / 1000.0f * max_delay_ms * (self->channel_count * (self->bits_per_sample / 8)); // bytes
     self->echo_buffer = m_malloc(self->max_echo_buffer_len);
     if (self->echo_buffer == NULL) {
         common_hal_audiodelays_echo_deinit(self);
@@ -60,20 +84,14 @@ void common_hal_audiodelays_echo_construct(audiodelays_echo_obj_t *self, uint32_
     }
     memset(self->echo_buffer, 0, self->max_echo_buffer_len);
 
-    // calculate current echo buffer size for the set delay
+    // calculate current echo buffer size we use for the given delay
     mp_float_t f_delay_ms = synthio_block_slot_get(&self->delay_ms);
     self->echo_buffer_len = self->sample_rate / 1000.0f * f_delay_ms * (self->channel_count * (self->bits_per_sample / 8));
 
-    // read is where we store the incoming sample
+    // read is where we store the incoming sample + previous echo
     // write is what we send to the outgoing buffer
-    self->echo_buffer_read_pos = self->buffer_len / sizeof(uint16_t);
+    self->echo_buffer_read_pos = self->buffer_len / (self->bits_per_sample / 8);
     self->echo_buffer_write_pos = 0;
-
-    self->sample = NULL;
-    self->sample_remaining_buffer = NULL;
-    self->sample_buffer_length = 0;
-    self->loop = false;
-    self->more_data = false;
 }
 
 bool common_hal_audiodelays_echo_deinited(audiodelays_echo_obj_t *self) {
@@ -153,6 +171,10 @@ bool common_hal_audiodelays_echo_get_playing(audiodelays_echo_obj_t *self) {
 }
 
 void common_hal_audiodelays_echo_play(audiodelays_echo_obj_t *self, mp_obj_t sample, bool loop) {
+    // When a sample is to be played we must ensure the samples values matches what we expect
+    // Then we reset the sample and get the first buffer to play
+    // The get_buffer function will actually process that data
+
     if (audiosample_sample_rate(sample) != self->sample_rate) {
         mp_raise_ValueError(MP_ERROR_TEXT("The sample's sample rate does not match"));
     }
@@ -170,19 +192,23 @@ void common_hal_audiodelays_echo_play(audiodelays_echo_obj_t *self, mp_obj_t sam
     if (samples_signed != self->samples_signed) {
         mp_raise_ValueError(MP_ERROR_TEXT("The sample's signedness does not match"));
     }
+
     self->sample = sample;
     self->loop = loop;
 
     audiosample_reset_buffer(self->sample, false, 0);
     audioio_get_buffer_result_t result = audiosample_get_buffer(self->sample, false, 0, (uint8_t **)&self->sample_remaining_buffer, &self->sample_buffer_length);
-    // Track length in terms of words.
-    self->sample_buffer_length /= sizeof(uint16_t);
+
+    // Track remaining sample length in terms of bytes per sample
+    self->sample_buffer_length /= (self->bits_per_sample / 8);
     self->more_data = result == GET_BUFFER_MORE_DATA;
 
     return;
 }
 
 void common_hal_audiodelays_echo_stop(audiodelays_echo_obj_t *self) {
+    // When the sample is set to stop playing do any cleanup here
+    // For echo we clear the sample but the echo continues until the object reading our effect stops
     self->sample = NULL;
     return;
 }
@@ -216,29 +242,37 @@ int16_t mix_down_sample(int32_t sample) {
 audioio_get_buffer_result_t audiodelays_echo_get_buffer(audiodelays_echo_obj_t *self, bool single_channel_output, uint8_t channel,
     uint8_t **buffer, uint32_t *buffer_length) {
 
+    // get the effect values we need from the BlockInput. These may change at run time so you need to do bounds checking if required
     mp_float_t mix = MIN(1.0, MAX(synthio_block_slot_get(&self->mix), 0.0));
     mp_float_t decay = MIN(1.0, MAX(synthio_block_slot_get(&self->decay), 0.0));
 
+    // Switch our buffers to the other buffer
     self->last_buf_idx = !self->last_buf_idx;
-    int16_t *word_buffer = (int16_t *)self->buffer[self->last_buf_idx];
-    uint32_t length = self->buffer_len / sizeof(uint16_t);
-    int16_t *echo_buffer = (int16_t *)self->echo_buffer;
-    uint32_t echo_buf_len = self->echo_buffer_len / sizeof(uint16_t);
 
+    // If we are using 16 bit samples we need a 16 bit pointer, for 8 bit we can just use the buffer
+    int16_t *word_buffer = (int16_t *)self->buffer[self->last_buf_idx];
+    uint32_t length = self->buffer_len / (self->bits_per_sample / 8);
+
+    int16_t *echo_buffer = (int16_t *)self->echo_buffer;
+    uint32_t echo_buf_len = self->echo_buffer_len / (self->bits_per_sample / 8);
+
+    // Loop over the entire length of our buffer to fill it, this may require several calls to get data from the sample
     while (length != 0) {
+
+        // Check if there is no more sample to play
         if (self->sample_buffer_length == 0) {
-            if (!self->more_data) {
-                if (self->loop && self->sample) {
+            if (!self->more_data) { // The sample has indicated it has no more data to play
+                if (self->loop && self->sample) { // If we are supposed to loop reset the sample to the start
                     audiosample_reset_buffer(self->sample, false, 0);
-                } else {
+                } else { // If we were not supposed to loop the sample, stop playing it but we still need to play the echo
                     self->sample = NULL;
                 }
             }
             if (self->sample) {
-                // Load another buffer
+                // Load another sample buffer to play
                 audioio_get_buffer_result_t result = audiosample_get_buffer(self->sample, false, 0, (uint8_t **)&self->sample_remaining_buffer, &self->sample_buffer_length);
                 // Track length in terms of words.
-                self->sample_buffer_length /= sizeof(uint16_t); // assuming 16 bit samples
+                self->sample_buffer_length /= (self->bits_per_sample / 8);
                 self->more_data = result == GET_BUFFER_MORE_DATA;
             }
         }
@@ -246,10 +280,10 @@ audioio_get_buffer_result_t audiodelays_echo_get_buffer(audiodelays_echo_obj_t *
         // If we have no sample keep the echo echoing
         if (self->sample == NULL) {
             if (MP_LIKELY(self->bits_per_sample == 16)) {
-                if (mix <= 0.01) {  // no sample sound and with no mix, no echo
+                if (mix <= 0.01) {  // Mix of 0 is pure sample sound. We have no sample so no sound
                     memset(word_buffer, 0, length * sizeof(uint16_t));
                 } else {
-                    // sample signed/unsigned won't matter as we have no sample
+                    // Since we have no sample we can just iterate over the our entire buffer
                     for (uint32_t i = 0; i < length; i++) {
                         word_buffer[i] = echo_buffer[self->echo_buffer_read_pos++] * decay;
 
@@ -267,30 +301,36 @@ audioio_get_buffer_result_t audiodelays_echo_get_buffer(audiodelays_echo_obj_t *
 
                 }
             } else { // bits per sample is 8
-                uint16_t *hword_buffer = (uint16_t *)word_buffer;
-                uint16_t *echo_hsrc = (uint16_t *)self->echo_buffer;
-                for (uint32_t i = 0; i < length * 2; i++) {
-                    uint32_t echo_word = unpack8(echo_hsrc[i]);
-                    echo_word = echo_word * decay;
-                    hword_buffer[i] = pack8(echo_word);
+                /* Still to be updated
+                    uint16_t *hword_buffer = (uint16_t *)word_buffer;
+                    uint16_t *echo_hsrc = (uint16_t *)self->echo_buffer;
+                    for (uint32_t i = 0; i < length * 2; i++) {
+                        uint32_t echo_word = unpack8(echo_hsrc[i]);
+                        echo_word = echo_word * decay;
+                        hword_buffer[i] = pack8(echo_word);
 
-                    echo_hsrc[self->echo_buffer_write_pos++] = hword_buffer[i];
-                    if (self->echo_buffer_read_pos >= echo_buf_len) {
-                        self->echo_buffer_read_pos = 0;
+                        echo_hsrc[self->echo_buffer_write_pos++] = hword_buffer[i];
+                        if (self->echo_buffer_read_pos >= echo_buf_len) {
+                            self->echo_buffer_read_pos = 0;
+                        }
+                        if (self->echo_buffer_write_pos >= echo_buf_len) {
+                            self->echo_buffer_write_pos = 0;
+                        }
                     }
-                    if (self->echo_buffer_write_pos >= echo_buf_len) {
-                        self->echo_buffer_write_pos = 0;
-                    }
-                }
+                */
             }
 
             length = 0;
-        } else { // we have a sample
+        } else {
+            // we have a sample to play and echo
+
+            // Determine how many bytes we can process to our buffer, the less of the sample we have left and our buffer remaining
             uint32_t n = MIN(self->sample_buffer_length, length);
+
             int16_t *sample_src = (int16_t *)self->sample_remaining_buffer;
 
             if (MP_LIKELY(self->bits_per_sample == 16)) {
-                if (mix <= 0.01) { // sample only
+                if (mix <= 0.01) { // if mix is zero pure sample only
                     for (uint32_t i = 0; i < n; i++) {
                         word_buffer[i] = sample_src[i];
                     }
@@ -317,27 +357,29 @@ audioio_get_buffer_result_t audiodelays_echo_get_buffer(audiodelays_echo_obj_t *
                     }
                 }
             } else { // bits per sample is 8
-                uint16_t *hword_buffer = (uint16_t *)word_buffer;
-                uint16_t *sample_hsrc = (uint16_t *)sample_src;
-                uint16_t *echo_hsrc = (uint16_t *)self->echo_buffer;
-                for (uint32_t i = 0; i < n * 2; i++) {
-                    uint32_t sample_word = unpack8(sample_hsrc[i]);
-                    uint32_t echo_word = unpack8(echo_hsrc[i]);
-                    if (MP_LIKELY(!self->samples_signed)) {
-                        sample_word = tosigned16(sample_word);
-                    }
-                    echo_word = echo_word * decay;
-                    sample_word = sample_word + echo_word;
-                    hword_buffer[i] = pack8(sample_word);
+                /* to be updated
+                    uint16_t *hword_buffer = (uint16_t *)word_buffer;
+                    uint16_t *sample_hsrc = (uint16_t *)sample_src;
+                    uint16_t *echo_hsrc = (uint16_t *)self->echo_buffer;
+                    for (uint32_t i = 0; i < n * 2; i++) {
+                        uint32_t sample_word = unpack8(sample_hsrc[i]);
+                        uint32_t echo_word = unpack8(echo_hsrc[i]);
+                        if (MP_LIKELY(!self->samples_signed)) {
+                            sample_word = tosigned16(sample_word);
+                        }
+                        echo_word = echo_word * decay;
+                        sample_word = sample_word + echo_word;
+                        hword_buffer[i] = pack8(sample_word);
 
-                    echo_hsrc[self->echo_buffer_write_pos++] = pack8(sample_word + unpack8(hword_buffer[i]));
-                    if (self->echo_buffer_read_pos >= echo_buf_len) {
-                        self->echo_buffer_read_pos = 0;
+                        echo_hsrc[self->echo_buffer_write_pos++] = pack8(sample_word + unpack8(hword_buffer[i]));
+                        if (self->echo_buffer_read_pos >= echo_buf_len) {
+                            self->echo_buffer_read_pos = 0;
+                        }
+                        if (self->echo_buffer_write_pos >= echo_buf_len) {
+                            self->echo_buffer_write_pos = 0;
+                        }
                     }
-                    if (self->echo_buffer_write_pos >= echo_buf_len) {
-                        self->echo_buffer_write_pos = 0;
-                    }
-                }
+                    */
             }
 
             length -= n;

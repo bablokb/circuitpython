@@ -28,7 +28,7 @@ typedef struct {
     uint8_t last_buf_idx;
     uint32_t buffer_len; // max buffer in bytes
 
-    uint32_t *sample_remaining_buffer;
+    uint8_t *sample_remaining_buffer;
     uint32_t sample_buffer_length;
 
     bool loop;
