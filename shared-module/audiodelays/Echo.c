@@ -76,7 +76,7 @@ void common_hal_audiodelays_echo_construct(audiodelays_echo_obj_t *self, uint32_
 
     // Allocate the echo buffer for the max possible delay
     self->max_delay_ms = max_delay_ms;
-    self->max_echo_buffer_len = self->sample_rate / 1000.0f * max_delay_ms * (self->channel_count * (self->bits_per_sample / 8)); // bytes
+    self->max_echo_buffer_len = self->sample_rate / 1000.0f * max_delay_ms * (self->channel_count * 2);// (self->bits_per_sample / 8)); // bytes
     self->echo_buffer = m_malloc(self->max_echo_buffer_len);
     if (self->echo_buffer == NULL) {
         common_hal_audiodelays_echo_deinit(self);
@@ -86,11 +86,11 @@ void common_hal_audiodelays_echo_construct(audiodelays_echo_obj_t *self, uint32_
 
     // calculate current echo buffer size we use for the given delay
     mp_float_t f_delay_ms = synthio_block_slot_get(&self->delay_ms);
-    self->echo_buffer_len = self->sample_rate / 1000.0f * f_delay_ms * (self->channel_count * (self->bits_per_sample / 8));
+    self->echo_buffer_len = self->sample_rate / 1000.0f * f_delay_ms * (self->channel_count * 2);// (self->bits_per_sample / 8));
 
     // read is where we store the incoming sample + previous echo
     // write is what we send to the outgoing buffer
-    self->echo_buffer_read_pos = self->buffer_len / (self->bits_per_sample / 8);
+    self->echo_buffer_read_pos = self->buffer_len / 2;// (self->bits_per_sample / 8);
     self->echo_buffer_write_pos = 0;
 }
 
@@ -119,9 +119,9 @@ void common_hal_audiodelays_echo_set_delay_ms(audiodelays_echo_obj_t *self, mp_o
     synthio_block_assign_slot(delay_ms, &self->delay_ms, MP_QSTR_delay_ms);
 
     mp_float_t f_delay_ms = synthio_block_slot_get(&self->delay_ms);
-    self->echo_buffer_len = self->sample_rate / 1000.0f * f_delay_ms * (self->channel_count * (self->bits_per_sample / 8));
+    self->echo_buffer_len = self->sample_rate / 1000.0f * f_delay_ms * (self->channel_count * 2);// (self->bits_per_sample / 8));
 
-    uint32_t max_ebuf_length = self->echo_buffer_len / sizeof(uint32_t);
+    uint32_t max_ebuf_length = self->echo_buffer_len / sizeof(uint16_t);
 
     if (self->echo_buffer_read_pos > max_ebuf_length) {
         self->echo_buffer_read_pos = 0;
@@ -249,12 +249,15 @@ audioio_get_buffer_result_t audiodelays_echo_get_buffer(audiodelays_echo_obj_t *
     // Switch our buffers to the other buffer
     self->last_buf_idx = !self->last_buf_idx;
 
-    // If we are using 16 bit samples we need a 16 bit pointer, for 8 bit we can just use the buffer
+    // If we are using 16 bit samples we need a 16 bit pointer
     int16_t *word_buffer = (int16_t *)self->buffer[self->last_buf_idx];
+    int8_t *hword_buffer = self->buffer[self->last_buf_idx];
     uint32_t length = self->buffer_len / (self->bits_per_sample / 8);
 
+    // The echo buffer is always stored as a 16-bit value internally
     int16_t *echo_buffer = (int16_t *)self->echo_buffer;
-    uint32_t echo_buf_len = self->echo_buffer_len / (self->bits_per_sample / 8);
+    uint32_t echo_buf_len = self->echo_buffer_len / 2;// (self->bits_per_sample / 8);
+
 
     // Loop over the entire length of our buffer to fill it, this may require several calls to get data from the sample
     while (length != 0) {
@@ -279,45 +282,38 @@ audioio_get_buffer_result_t audiodelays_echo_get_buffer(audiodelays_echo_obj_t *
 
         // If we have no sample keep the echo echoing
         if (self->sample == NULL) {
-            if (MP_LIKELY(self->bits_per_sample == 16)) {
-                if (mix <= 0.01) {  // Mix of 0 is pure sample sound. We have no sample so no sound
-                    memset(word_buffer, 0, length * sizeof(uint16_t));
+            if (mix <= 0.01) {  // Mix of 0 is pure sample sound. We have no sample so no sound
+                if (self->samples_signed) {
+                    memset(word_buffer, 0, length * (self->bits_per_sample / 8));
                 } else {
-                    // Since we have no sample we can just iterate over the our entire buffer
-                    for (uint32_t i = 0; i < length; i++) {
-                        word_buffer[i] = echo_buffer[self->echo_buffer_read_pos++] * decay;
-
-                        echo_buffer[self->echo_buffer_write_pos++] = word_buffer[i];
-
-                        word_buffer[i] = word_buffer[i] * mix;
-
-                        if (self->echo_buffer_read_pos >= echo_buf_len) {
-                            self->echo_buffer_read_pos = 0;
-                        }
-                        if (self->echo_buffer_write_pos >= echo_buf_len) {
-                            self->echo_buffer_write_pos = 0;
-                        }
-                    }
-
+                    memset(hword_buffer, 128, length * (self->bits_per_sample / 8));
                 }
-            } else { // bits per sample is 8
-                /* Still to be updated
-                    uint16_t *hword_buffer = (uint16_t *)word_buffer;
-                    uint16_t *echo_hsrc = (uint16_t *)self->echo_buffer;
-                    for (uint32_t i = 0; i < length * 2; i++) {
-                        uint32_t echo_word = unpack8(echo_hsrc[i]);
-                        echo_word = echo_word * decay;
-                        hword_buffer[i] = pack8(echo_word);
+            } else {
+                // Since we have no sample we can just iterate over the our entire remaining buffer
+                for (uint32_t i = 0; i < length; i++) {
+                    int16_t echo = echo_buffer[self->echo_buffer_read_pos++] * decay;
+                    echo_buffer[self->echo_buffer_write_pos++] = echo;
 
-                        echo_hsrc[self->echo_buffer_write_pos++] = hword_buffer[i];
-                        if (self->echo_buffer_read_pos >= echo_buf_len) {
-                            self->echo_buffer_read_pos = 0;
+                    if (MP_LIKELY(self->bits_per_sample == 16)) {
+                        word_buffer[i] = echo * mix;
+                        if (!self->samples_signed) {
+                            word_buffer[i] ^= 0x8000;
                         }
-                        if (self->echo_buffer_write_pos >= echo_buf_len) {
-                            self->echo_buffer_write_pos = 0;
+                    } else {
+                        echo = echo * mix;
+                        hword_buffer[i] = echo;
+                        if (!self->samples_signed) {
+                            hword_buffer[i] ^= 0x80;
                         }
                     }
-                */
+
+                    if (self->echo_buffer_read_pos >= echo_buf_len) {
+                        self->echo_buffer_read_pos = 0;
+                    }
+                    if (self->echo_buffer_write_pos >= echo_buf_len) {
+                        self->echo_buffer_write_pos = 0;
+                    }
+                }
             }
 
             length = 0;
@@ -328,62 +324,74 @@ audioio_get_buffer_result_t audiodelays_echo_get_buffer(audiodelays_echo_obj_t *
             uint32_t n = MIN(self->sample_buffer_length, length);
 
             int16_t *sample_src = (int16_t *)self->sample_remaining_buffer;
+            int8_t *sample_hsrc = (int8_t *)self->sample_remaining_buffer;
 
-            if (MP_LIKELY(self->bits_per_sample == 16)) {
-                if (mix <= 0.01) { // if mix is zero pure sample only
-                    for (uint32_t i = 0; i < n; i++) {
+            if (mix <= 0.01) { // if mix is zero pure sample only
+                for (uint32_t i = 0; i < n; i++) {
+                    if (MP_LIKELY(self->bits_per_sample == 16)) {
                         word_buffer[i] = sample_src[i];
-                    }
-                } else {
-                    for (uint32_t i = 0; i < n; i++) {
-                        int32_t sample_word = sample_src[i];
-                        if (!self->samples_signed) {
-                            sample_word = tosigned16(sample_word);
-                        }
-
-                        int32_t word = (echo_buffer[self->echo_buffer_read_pos++] * decay) + sample_word;
-                        word_buffer[i] = mix_down_sample(word);
-
-                        echo_buffer[self->echo_buffer_write_pos++] = word_buffer[i];
-
-                        if (self->echo_buffer_read_pos >= echo_buf_len) {
-                            self->echo_buffer_read_pos = 0;
-                        }
-                        if (self->echo_buffer_write_pos >= echo_buf_len) {
-                            self->echo_buffer_write_pos = 0;
-                        }
-
-                        word_buffer[i] = (sample_word * (1.0 - mix)) + (word_buffer[i] * mix);
+                    } else {
+                        hword_buffer[i] = sample_hsrc[i];
                     }
                 }
-            } else { // bits per sample is 8
-                /* to be updated
-                    uint16_t *hword_buffer = (uint16_t *)word_buffer;
-                    uint16_t *sample_hsrc = (uint16_t *)sample_src;
-                    uint16_t *echo_hsrc = (uint16_t *)self->echo_buffer;
-                    for (uint32_t i = 0; i < n * 2; i++) {
-                        uint32_t sample_word = unpack8(sample_hsrc[i]);
-                        uint32_t echo_word = unpack8(echo_hsrc[i]);
-                        if (MP_LIKELY(!self->samples_signed)) {
-                            sample_word = tosigned16(sample_word);
-                        }
-                        echo_word = echo_word * decay;
-                        sample_word = sample_word + echo_word;
-                        hword_buffer[i] = pack8(sample_word);
+            } else {
+                for (uint32_t i = 0; i < n; i++) {
+                    int32_t sample_word = 0;
+                    if (MP_LIKELY(self->bits_per_sample == 16)) {
+                        sample_word = sample_src[i];
+                    } else {
+                        if (self->samples_signed) {
+                            sample_word = sample_hsrc[i];
+                        } else {
+                            // uint8_t s1 = sample_hsrc[i];
+                            // int8_t s2 = s1^0x80;
+                            // sample_word = s2;
 
-                        echo_hsrc[self->echo_buffer_write_pos++] = pack8(sample_word + unpack8(hword_buffer[i]));
-                        if (self->echo_buffer_read_pos >= echo_buf_len) {
-                            self->echo_buffer_read_pos = 0;
-                        }
-                        if (self->echo_buffer_write_pos >= echo_buf_len) {
-                            self->echo_buffer_write_pos = 0;
+                            sample_word = (int8_t)(((uint8_t)sample_hsrc[i]) ^ 0x80);
                         }
                     }
-                    */
+
+                    int32_t echo = echo_buffer[self->echo_buffer_read_pos++] * decay;
+                    int32_t word = echo + sample_word;
+                    if (MP_LIKELY(self->bits_per_sample == 16)) {
+                        word = mix_down_sample(word);
+                        echo_buffer[self->echo_buffer_write_pos++] = (int16_t)word;
+                    } else {
+                        if (word > 127) {
+                            word = 127;
+                        } else if (word < -128) {
+                            word = -128;
+                        }
+                        echo_buffer[self->echo_buffer_write_pos++] = (int8_t)word;
+                    }
+
+                    if (MP_LIKELY(self->bits_per_sample == 16)) {
+                        word_buffer[i] = (sample_word * (1.0 - mix)) + (word * mix);
+                        if (!self->samples_signed) {
+                            word_buffer[i] ^= 0x8000;
+                        }
+                    } else {
+                        int8_t mixed = (sample_word * (1.0 - mix)) + (word * mix);
+                        ;
+                        if (self->samples_signed) {
+                            hword_buffer[i] = mixed;
+                        } else {
+                            hword_buffer[i] = (uint8_t)mixed ^ 0x80;
+                        }
+                    }
+
+                    if (self->echo_buffer_read_pos >= echo_buf_len) {
+                        self->echo_buffer_read_pos = 0;
+                    }
+                    if (self->echo_buffer_write_pos >= echo_buf_len) {
+                        self->echo_buffer_write_pos = 0;
+                    }
+                }
             }
 
             length -= n;
             word_buffer += n;
+            hword_buffer += n;
             self->sample_remaining_buffer += n;
             self->sample_buffer_length -= n;
         }
@@ -398,7 +406,7 @@ void audiodelays_echo_get_buffer_structure(audiodelays_echo_obj_t *self, bool si
     bool *single_buffer, bool *samples_signed, uint32_t *max_buffer_length, uint8_t *spacing) {
 
     *single_buffer = false;
-    *samples_signed = true;
+    *samples_signed = self->samples_signed;
     *max_buffer_length = self->buffer_len;
     if (single_channel_output) {
         *spacing = self->channel_count;
