@@ -397,7 +397,7 @@ audioio_get_buffer_result_t audiodelays_echo_get_buffer(audiodelays_echo_obj_t *
             length -= n;
             word_buffer += n;
             hword_buffer += n;
-            self->sample_remaining_buffer += n;
+            self->sample_remaining_buffer += (n * (self->bits_per_sample / 8));
             self->sample_buffer_length -= n;
         }
     }
