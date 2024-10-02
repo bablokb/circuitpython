@@ -21,10 +21,55 @@
 //| class Echo:
 //|     """An Echo effect"""
 //|
+//|     def __init__(
+//|         self,
+//|         max_delay_ms: int = 500,
+//|         delay_ms: BlockInput = 250.0,
+//|         decay: BlockInput = 0.7,
+//|         mix: BlockInput = 0.5,
+//|         buffer_size: int = 512,
+//|         sample_rate: int = 8000,
+//|         bits_per_sample: int = 16,
+//|         samples_signed: bool = True,
+//|         channel_count: int = 1,
+//|     ) -> None:
+//|         """Create a Echo effect that echos an audio sample every set number of microseconds.
+//|
+//|         :param int max_delay_ms: The maximum delay the echo can be
+//|         :param BlockInput delay_ms: The current echo delay
+//|         :param BlockInput decay: The rate the echo fades. 0.0 = instant; 1.0 = never.
+//|         :param BlockInput mix: The mix as a ratio of the sample (0.0) to the effect (1.0).
+//|         :param int buffer_size: The total size in bytes of the buffers to use
+//|         :param int sample_rate: The sample rate to be used
+//|         :param int channel_count: The number of channels the source samples contain. 1 = mono; 2 = stereo.
+//|         :param int bits_per_sample: The bits per sample of the effect
+//|         :param bool samples_signed: Effect is signed (True) or unsigned (False)
+//|
+//|         Playing adding an echo to a synth::
+//|
+//|           import time
+//|           import board
+//|           import audiobusio
+//|           import synthio
+//|           import audiodelays
+//|
+//|           audio = audiobusio.I2SOut(bit_clock=board.GP20, word_select=board.GP21, data=board.GP22)
+//|           synth = synthio.Synthesizer(channel_count=1, sample_rate=44100)
+//|           echo = audiodelays.Echo(max_delay_ms=1000, delay_ms=850, decay=0.65, buffer_size=1024, channel_count=1, sample_rate=44100, mix=0.7)
+//|           echo.play(synth)
+//|           audio.play(echo)
+//|
+//|           note = synthio.Note(261)
+//|           while True:
+//|               synth.press(note)
+//|               time.sleep(0.25)
+//|               synth.release(note)
+//|               time.sleep(5)"""
+//|         ...
 static mp_obj_t audiodelays_echo_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *all_args) {
     enum { ARG_max_delay_ms, ARG_delay_ms, ARG_decay, ARG_mix, ARG_buffer_size, ARG_sample_rate, ARG_bits_per_sample, ARG_samples_signed, ARG_channel_count, };
     static const mp_arg_t allowed_args[] = {
-        { MP_QSTR_max_delay_ms, MP_ARG_INT | MP_ARG_KW_ONLY, {.u_int = 50 } },
+        { MP_QSTR_max_delay_ms, MP_ARG_INT | MP_ARG_KW_ONLY, {.u_int = 500 } },
         { MP_QSTR_delay_ms, MP_ARG_OBJ | MP_ARG_KW_ONLY, {.u_obj = MP_OBJ_NULL} },
         { MP_QSTR_decay, MP_ARG_OBJ | MP_ARG_KW_ONLY,  {.u_obj = MP_OBJ_NULL} },
         { MP_QSTR_mix, MP_ARG_OBJ | MP_ARG_KW_ONLY,  {.u_obj = MP_OBJ_NULL} },
@@ -54,7 +99,7 @@ static mp_obj_t audiodelays_echo_make_new(const mp_obj_type_t *type, size_t n_ar
 }
 
 //|     def deinit(self) -> None:
-//|         """Deinitialises the Echo and releases any hardware resources for reuse."""
+//|         """Deinitialises the Echo."""
 //|         ...
 static mp_obj_t audiodelays_echo_deinit(mp_obj_t self_in) {
     audiodelays_echo_obj_t *self = MP_OBJ_TO_PTR(self_in);
@@ -75,7 +120,7 @@ static void check_for_deinit(audiodelays_echo_obj_t *self) {
 //  Provided by context manager helper.
 
 //|     def __exit__(self) -> None:
-//|         """Automatically deinitializes the hardware when exiting a context. See
+//|         """Automatically deinitializes when exiting a context. See
 //|         :ref:`lifetime-and-contextmanagers` for more info."""
 //|         ...
 static mp_obj_t audiodelays_echo_obj___exit__(size_t n_args, const mp_obj_t *args) {
@@ -117,7 +162,7 @@ MP_PROPERTY_GETSET(audiodelays_echo_delay_ms_obj,
     (mp_obj_t)&audiodelays_echo_set_delay_ms_obj);
 
 //|     decay: BlockInput
-//|     """The rate the echo decays between 0 and 1."""
+//|     """The rate the echo decays between 0 and 1 where 1 is forever and 0 is no echo."""
 static mp_obj_t audiodelays_echo_obj_get_decay(mp_obj_t self_in) {
     return common_hal_audiodelays_echo_get_decay(self_in);
 }
@@ -143,7 +188,7 @@ MP_PROPERTY_GETSET(audiodelays_echo_decay_obj,
     (mp_obj_t)&audiodelays_echo_set_decay_obj);
 
 //|     mix: BlockInput
-//|     """The rate the echo mix between 0 and 1."""
+//|     """The rate the echo mix between 0 and 1 where 0 is only sample and 1 is all effect."""
 static mp_obj_t audiodelays_echo_obj_get_mix(mp_obj_t self_in) {
     return common_hal_audiodelays_echo_get_mix(self_in);
 }
@@ -168,10 +213,8 @@ MP_PROPERTY_GETSET(audiodelays_echo_mix_obj,
     (mp_obj_t)&audiodelays_echo_get_mix_obj,
     (mp_obj_t)&audiodelays_echo_set_mix_obj);
 
-
-
 //|     playing: bool
-//|     """True when any voice is being output. (read-only)"""
+//|     """True when the effect is playing a sample. (read-only)"""
 static mp_obj_t audiodelays_echo_obj_get_playing(mp_obj_t self_in) {
     audiodelays_echo_obj_t *self = MP_OBJ_TO_PTR(self_in);
     check_for_deinit(self);
@@ -188,9 +231,7 @@ MP_PROPERTY_GETTER(audiodelays_echo_playing_obj,
 //|         """Plays the sample once when loop=False and continuously when loop=True.
 //|         Does not block. Use `playing` to block.
 //|
-//|         Sample must be an `audiocore.WaveFile`, `audiocore.RawSample`, `audiomixer.Mixer` or `audiomp3.MP3Decoder`.
-//|
-//|         The sample must match the Effect's encoding settings given in the constructor."""
+//|         The sample must match the encoding settings given in the constructor."""
 //|         ...
 static mp_obj_t audiodelays_echo_obj_play(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
     enum { ARG_sample, ARG_loop };
@@ -212,7 +253,7 @@ static mp_obj_t audiodelays_echo_obj_play(size_t n_args, const mp_obj_t *pos_arg
 MP_DEFINE_CONST_FUN_OBJ_KW(audiodelays_echo_play_obj, 1, audiodelays_echo_obj_play);
 
 //|     def stop(self) -> None:
-//|         """Stops playback of the sample."""
+//|         """Stops playback of the sample. The echo continues playing."""
 //|         ...
 //|
 static mp_obj_t audiodelays_echo_obj_stop(mp_obj_t self_in) {
@@ -222,8 +263,6 @@ static mp_obj_t audiodelays_echo_obj_stop(mp_obj_t self_in) {
     return mp_const_none;
 }
 MP_DEFINE_CONST_FUN_OBJ_1(audiodelays_echo_stop_obj, audiodelays_echo_obj_stop);
-
-
 
 static const mp_rom_map_elem_t audiodelays_echo_locals_dict_table[] = {
     // Methods

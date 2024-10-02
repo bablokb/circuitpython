@@ -61,7 +61,7 @@ void common_hal_audiodelays_echo_construct(audiodelays_echo_obj_t *self, uint32_
     synthio_block_assign_slot(decay, &self->decay, MP_QSTR_decay);
 
     if (delay_ms == MP_OBJ_NULL) {
-        delay_ms = mp_obj_new_float(500.0);
+        delay_ms = mp_obj_new_float(250.0);
     }
     synthio_block_assign_slot(delay_ms, &self->delay_ms, MP_QSTR_delay_ms);
 
