@@ -86,10 +86,11 @@ void common_hal_audiodelays_echo_construct(audiodelays_echo_obj_t *self, uint32_
 
     // calculate current echo buffer size we use for the given delay
     mp_float_t f_delay_ms = synthio_block_slot_get(&self->delay_ms);
+    self->current_delay_ms = f_delay_ms;
     self->echo_buffer_len = self->sample_rate / 1000.0f * f_delay_ms * (self->channel_count * sizeof(uint16_t));
 
-    // read is where we store the incoming sample + previous echo
-    // write is what we send to the outgoing buffer
+    // read is where we read previous echo from delay_ms ago to play back now
+    // write is where the store the latest playing sample to echo back later
     self->echo_buffer_read_pos = self->buffer_len / sizeof(uint16_t);
     self->echo_buffer_write_pos = 0;
 }
@@ -119,17 +120,24 @@ void common_hal_audiodelays_echo_set_delay_ms(audiodelays_echo_obj_t *self, mp_o
     synthio_block_assign_slot(delay_ms, &self->delay_ms, MP_QSTR_delay_ms);
 
     mp_float_t f_delay_ms = synthio_block_slot_get(&self->delay_ms);
-    self->echo_buffer_len = self->sample_rate / 1000.0f * f_delay_ms * (self->channel_count * 2);// (self->bits_per_sample / 8));
 
-    uint32_t max_ebuf_length = self->echo_buffer_len / sizeof(uint16_t);
+    recalculate_delay(self, f_delay_ms);
+}
 
-    if (self->echo_buffer_read_pos > max_ebuf_length) {
-        self->echo_buffer_read_pos = 0;
-        self->echo_buffer_write_pos = max_ebuf_length - (self->buffer_len / sizeof(uint16_t));
-    } else if (self->echo_buffer_write_pos > max_ebuf_length) {
-        self->echo_buffer_read_pos = self->buffer_len / sizeof(uint16_t);
-        self->echo_buffer_write_pos = 0;
+void recalculate_delay(audiodelays_echo_obj_t *self, mp_float_t f_delay_ms) {
+    // Calculate the current echo buffer length in bytes
+
+    uint32_t new_echo_buffer_len = self->sample_rate / 1000.0f * f_delay_ms * sizeof(uint16_t);
+
+    // Check if our new echo is too long for our maximum buffer
+    if (new_echo_buffer_len > self->max_echo_buffer_len) {
+        return;
+    } else if (new_echo_buffer_len < 0.0) { // or too short!
+        return;
     }
+
+    self->echo_buffer_len = new_echo_buffer_len;
+    self->current_delay_ms = f_delay_ms;
 }
 
 mp_obj_t common_hal_audiodelays_echo_get_decay(audiodelays_echo_obj_t *self) {
@@ -249,6 +257,11 @@ audioio_get_buffer_result_t audiodelays_echo_get_buffer(audiodelays_echo_obj_t *
     // get the effect values we need from the BlockInput. These may change at run time so you need to do bounds checking if required
     mp_float_t mix = MIN(1.0, MAX(synthio_block_slot_get(&self->mix), 0.0));
     mp_float_t decay = MIN(1.0, MAX(synthio_block_slot_get(&self->decay), 0.0));
+
+    uint32_t delay_ms = (uint32_t)synthio_block_slot_get(&self->delay_ms);
+    if (self->current_delay_ms != delay_ms) {
+        recalculate_delay(self, delay_ms);
+    }
 
     // Switch our buffers to the other buffer
     self->last_buf_idx = !self->last_buf_idx;

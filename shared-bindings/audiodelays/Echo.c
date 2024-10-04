@@ -33,7 +33,7 @@
 //|         samples_signed: bool = True,
 //|         channel_count: int = 1,
 //|     ) -> None:
-//|         """Create a Echo effect that echos an audio sample every set number of microseconds.
+//|         """Create a Echo effect that echos an audio sample every set number of milliseconds.
 //|
 //|         :param int max_delay_ms: The maximum delay the echo can be
 //|         :param BlockInput delay_ms: The current echo delay
@@ -132,7 +132,7 @@ static MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(audiodelays_echo___exit___obj, 4, 4, 
 
 
 //|     delay_ms: BlockInput
-//|     """Delay of the echo in microseconds. (read-only)"""
+//|     """Delay of the echo in milliseconds. (read-only)"""
 //|
 static mp_obj_t audiodelays_echo_obj_get_delay_ms(mp_obj_t self_in) {
     audiodelays_echo_obj_t *self = MP_OBJ_TO_PTR(self_in);

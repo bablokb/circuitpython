@@ -16,6 +16,7 @@ typedef struct {
     mp_obj_base_t base;
     uint32_t max_delay_ms;
     synthio_block_slot_t delay_ms;
+    uint32_t current_delay_ms;
     synthio_block_slot_t decay;
     synthio_block_slot_t mix;
 
@@ -43,6 +44,8 @@ typedef struct {
 
     mp_obj_t sample;
 } audiodelays_echo_obj_t;
+
+void recalculate_delay(audiodelays_echo_obj_t *self, mp_float_t f_delay_ms);
 
 void audiodelays_echo_reset_buffer(audiodelays_echo_obj_t *self,
     bool single_channel_output,
