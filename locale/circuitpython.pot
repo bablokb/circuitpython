@@ -1966,19 +1966,7 @@ msgid "The length of rgb_pins must be 6, 12, 18, 24, or 30"
 msgstr ""
 
 #: shared-module/audiodelays/Echo.c shared-module/audiomixer/MixerVoice.c
-msgid "The sample's bits_per_sample does not match"
-msgstr ""
-
-#: shared-module/audiodelays/Echo.c shared-module/audiomixer/MixerVoice.c
-msgid "The sample's channel count does not match"
-msgstr ""
-
-#: shared-module/audiodelays/Echo.c shared-module/audiomixer/MixerVoice.c
-msgid "The sample's sample rate does not match"
-msgstr ""
-
-#: shared-module/audiodelays/Echo.c shared-module/audiomixer/MixerVoice.c
-msgid "The sample's signedness does not match"
+msgid "The sample's %q does not match"
 msgstr ""
 
 #: supervisor/shared/safe_mode.c

@@ -14,6 +14,7 @@
 #include "py/objproperty.h"
 #include "py/runtime.h"
 #include "shared-bindings/util.h"
+#include "shared-module/synthio/block.h"
 
 #define DECAY_DEFAULT 0.7f
 #define MIX_DEFAULT 0.5f
@@ -39,7 +40,7 @@
 //|         :param BlockInput delay_ms: The current echo delay
 //|         :param BlockInput decay: The rate the echo fades. 0.0 = instant; 1.0 = never.
 //|         :param BlockInput mix: The mix as a ratio of the sample (0.0) to the effect (1.0).
-//|         :param int buffer_size: The total size in bytes of the buffers to use
+//|         :param int buffer_size: The total size in bytes of each of the two playback buffers to use
 //|         :param int sample_rate: The sample rate to be used
 //|         :param int channel_count: The number of channels the source samples contain. 1 = mono; 2 = stereo.
 //|         :param int bits_per_sample: The bits per sample of the effect
@@ -225,9 +226,7 @@ MP_DEFINE_CONST_FUN_OBJ_1(audiodelays_echo_get_playing_obj, audiodelays_echo_obj
 MP_PROPERTY_GETTER(audiodelays_echo_playing_obj,
     (mp_obj_t)&audiodelays_echo_get_playing_obj);
 
-//|     def play(
-//|         self, sample: circuitpython_typing.AudioSample, *, voice: int = 0, loop: bool = False
-//|     ) -> None:
+//|     def play(self, sample: circuitpython_typing.AudioSample, *, loop: bool = False) -> None:
 //|         """Plays the sample once when loop=False and continuously when loop=True.
 //|         Does not block. Use `playing` to block.
 //|
