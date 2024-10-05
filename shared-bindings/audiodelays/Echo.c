@@ -25,21 +25,29 @@
 //|     def __init__(
 //|         self,
 //|         max_delay_ms: int = 500,
-//|         delay_ms: BlockInput = 250.0,
-//|         decay: BlockInput = 0.7,
-//|         mix: BlockInput = 0.5,
+//|         delay_ms: synthio.BlockInput = 250.0,
+//|         decay: synthio.BlockInput = 0.7,
+//|         mix: synthio.BlockInput = 0.5,
 //|         buffer_size: int = 512,
 //|         sample_rate: int = 8000,
 //|         bits_per_sample: int = 16,
 //|         samples_signed: bool = True,
 //|         channel_count: int = 1,
 //|     ) -> None:
-//|         """Create a Echo effect that echos an audio sample every set number of milliseconds.
+//|         """Create a Echo effect where you hear the original sample play back, at a lesser volume after
+//|            a set number of millisecond delay. The delay timing of the echo can be changed at runtime
+//|            with the delay_ms parameter but the delay can never exceed the max_delay_ms parameter. The
+//|            maximum delay you can set is limited by available memory.
 //|
-//|         :param int max_delay_ms: The maximum delay the echo can be
-//|         :param BlockInput delay_ms: The current echo delay
-//|         :param BlockInput decay: The rate the echo fades. 0.0 = instant; 1.0 = never.
-//|         :param BlockInput mix: The mix as a ratio of the sample (0.0) to the effect (1.0).
+//|            Each time the echo plays back the volume is reduced by the decay setting (echo * decay).
+//|
+//|            The mix parameter allows you to change how much of the unchanged sample passes through to
+//|            the output to how much of the effect audio you hear as the output.
+//|
+//|         :param int max_delay_ms: The maximum time the echo can be in milliseconds
+//|         :param synthio.BlockInput delay_ms: The current time of the echo delay in milliseconds. Must be less the max_delay_ms
+//|         :param synthio.BlockInput decay: The rate the echo fades. 0.0 = instant; 1.0 = never.
+//|         :param synthio.BlockInput mix: The mix as a ratio of the sample (0.0) to the effect (1.0).
 //|         :param int buffer_size: The total size in bytes of each of the two playback buffers to use
 //|         :param int sample_rate: The sample rate to be used
 //|         :param int channel_count: The number of channels the source samples contain. 1 = mono; 2 = stereo.
@@ -132,7 +140,7 @@ static mp_obj_t audiodelays_echo_obj___exit__(size_t n_args, const mp_obj_t *arg
 static MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(audiodelays_echo___exit___obj, 4, 4, audiodelays_echo_obj___exit__);
 
 
-//|     delay_ms: BlockInput
+//|     delay_ms: synthio.BlockInput
 //|     """Delay of the echo in milliseconds. (read-only)"""
 //|
 static mp_obj_t audiodelays_echo_obj_get_delay_ms(mp_obj_t self_in) {
@@ -162,7 +170,7 @@ MP_PROPERTY_GETSET(audiodelays_echo_delay_ms_obj,
     (mp_obj_t)&audiodelays_echo_get_delay_ms_obj,
     (mp_obj_t)&audiodelays_echo_set_delay_ms_obj);
 
-//|     decay: BlockInput
+//|     decay: synthio.BlockInput
 //|     """The rate the echo decays between 0 and 1 where 1 is forever and 0 is no echo."""
 static mp_obj_t audiodelays_echo_obj_get_decay(mp_obj_t self_in) {
     return common_hal_audiodelays_echo_get_decay(self_in);
@@ -188,7 +196,7 @@ MP_PROPERTY_GETSET(audiodelays_echo_decay_obj,
     (mp_obj_t)&audiodelays_echo_get_decay_obj,
     (mp_obj_t)&audiodelays_echo_set_decay_obj);
 
-//|     mix: BlockInput
+//|     mix: synthio.BlockInput
 //|     """The rate the echo mix between 0 and 1 where 0 is only sample and 1 is all effect."""
 static mp_obj_t audiodelays_echo_obj_get_mix(mp_obj_t self_in) {
     return common_hal_audiodelays_echo_get_mix(self_in);
