@@ -7,8 +7,6 @@
 
 #include <stdint.h>
 #include "py/runtime.h"
-#include "shared-module/audiomixer/utils.h"
-
 
 void common_hal_audiodelays_echo_construct(audiodelays_echo_obj_t *self, uint32_t max_delay_ms,
     mp_obj_t delay_ms, mp_obj_t decay, mp_obj_t mix,
