@@ -125,12 +125,17 @@ void common_hal_audiodelays_echo_set_delay_ms(audiodelays_echo_obj_t *self, mp_o
 void recalculate_delay(audiodelays_echo_obj_t *self, mp_float_t f_delay_ms) {
     // Calculate the current echo buffer length in bytes
 
-    uint32_t new_echo_buffer_len = self->sample_rate / 1000.0f * f_delay_ms * sizeof(uint16_t);
+    uint32_t new_echo_buffer_len = self->sample_rate / 1000.0f * f_delay_ms * (self->channel_count * sizeof(uint16_t));
 
     // Check if our new echo is too long for our maximum buffer
     if (new_echo_buffer_len > self->max_echo_buffer_len) {
         return;
     } else if (new_echo_buffer_len < 0.0) { // or too short!
+        return;
+    }
+
+    // If the echo buffer is larger then our audio buffer weird things happen
+    if (new_echo_buffer_len < self->buffer_len) {
         return;
     }
 
