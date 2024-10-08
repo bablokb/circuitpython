@@ -64,6 +64,9 @@ CIRCUITPY_PICODVI ?= 1
 # Our generic touchio uses a pull down and RP2350 A2 hardware doesn't work correctly.
 # So, turn touchio off because it doesn't work.
 CIRCUITPY_TOUCHIO = 0
+
+# Audio effects
+CIRCUITPY_AUDIOEFFECTS ?= 1
 endif
 
 INTERNAL_LIBM = 1
