@@ -131,7 +131,7 @@ endif
 ifeq ($(CIRCUITPY_AUDIOCORE),1)
 SRC_PATTERNS += audiocore/%
 endif
-ifeq ($(CIRCUITPY_AUDIOEFFECTS),1)
+ifeq ($(CIRCUITPY_AUDIODELAYS),1)
 SRC_PATTERNS += audiodelays/%
 endif
 ifeq ($(CIRCUITPY_AUDIOMIXER),1)
