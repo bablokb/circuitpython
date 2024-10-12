@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: circuitpython-cn\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-01-04 12:55-0600\n"
-"PO-Revision-Date: 2024-09-06 04:09+0000\n"
+"PO-Revision-Date: 2024-10-13 18:16+0000\n"
 "Last-Translator: hexthat <hexthat@gmail.com>\n"
 "Language-Team: Chinese Hanyu Pinyin\n"
 "Language: zh_Latn_pinyin\n"
@@ -431,7 +431,7 @@ msgstr "'label' xūyào 1 gè cānshù"
 
 #: py/emitnative.c
 msgid "'not' not implemented"
-msgstr ""
+msgstr "'not' wèi shíxiàn"
 
 #: py/compile.c
 msgid "'return' outside function"
@@ -684,7 +684,7 @@ msgstr "Huǎnchōng qū chángdù%d tài dà. Tā bìxū xiǎoyú%d"
 #: shared-module/sdcardio/SDCard.c
 #, c-format
 msgid "Buffer must be a multiple of %d bytes"
-msgstr ""
+msgstr "huǎnchōngqū bìxū shì %d zìjié de bèishù"
 
 #: shared-bindings/_bleio/PacketBuffer.c
 #, c-format
@@ -1578,7 +1578,7 @@ msgstr "bù zhīchí JPEG biāozhǔn"
 #: ports/espressif/common-hal/sdioio/SDCard.c
 #, c-format
 msgid "Number of data_pins must be %d or %d, not %d"
-msgstr ""
+msgstr "data_pins shù bìxū shì %d huò %d, érbùshì %d"
 
 #: shared-bindings/util.c
 msgid ""
@@ -1915,7 +1915,7 @@ msgstr "SDIO GetCardInfo Cuòwù %d"
 #: ports/stm/common-hal/sdioio/SDCard.c
 #, c-format
 msgid "SDIO Init Error %x"
-msgstr ""
+msgstr "SDIO rècuòwù %x"
 
 #: ports/espressif/common-hal/busio/SPI.c
 msgid "SPI configuration failed"
@@ -2463,7 +2463,7 @@ msgstr "wèi wéi pīn hé shù zǔ shí xiàn argsort"
 
 #: extmod/ulab/code/numpy/random/random.c
 msgid "argument must be None, an integer or a tuple of integers"
-msgstr ""
+msgstr "cānshù bìxū shì None, zhěngshù huò zhěngshù yuánzǔ"
 
 #: py/compile.c
 msgid "argument name reused"
@@ -2701,7 +2701,7 @@ msgstr "bùnéng zài '%q' hé '%q' zhī jiān jìnxíng èr yuán yùnsuàn"
 
 #: py/emitnative.c
 msgid "can't do unary op of '%q'"
-msgstr ""
+msgstr "wúfǎ zhíxíng '%q' de yīyuán yùnsuàn"
 
 #: py/emitnative.c
 msgid "can't implicitly convert '%q' to 'bool'"
@@ -3852,7 +3852,7 @@ msgstr "chū zhèn liè tài xiǎo"
 
 #: extmod/ulab/code/numpy/random/random.c
 msgid "out has wrong type"
-msgstr ""
+msgstr "out de lèixíng cuòwù"
 
 #: extmod/ulab/code/numpy/vector.c
 msgid "out keyword is not supported for complex dtype"
@@ -3880,11 +3880,11 @@ msgstr "mù biāo fàn wéi wài"
 
 #: extmod/ulab/code/numpy/random/random.c
 msgid "output array has wrong type"
-msgstr ""
+msgstr "output array de lèixíng cuòwù"
 
 #: extmod/ulab/code/numpy/random/random.c
 msgid "output array must be contiguous"
-msgstr ""
+msgstr "output array bìxū shì liánxù de"
 
 #: py/objint_mpz.c
 msgid "overflow converting long int to machine word"
@@ -4014,7 +4014,7 @@ msgstr "shè zhì bù shòu zhī chí"
 
 #: extmod/ulab/code/numpy/random/random.c
 msgid "shape must be None, and integer or a tuple of integers"
-msgstr ""
+msgstr "shape bìxū shì None, bìng qiěshì integer huò zhěngshù yuánzǔ"
 
 #: extmod/ulab/code/ndarray.c
 msgid "shape must be integer or tuple of integers"
@@ -4038,7 +4038,7 @@ msgstr "dàxiǎo jǐn wèi ndarrays dìngyì"
 
 #: extmod/ulab/code/numpy/random/random.c
 msgid "size must match out.shape when used together"
-msgstr ""
+msgstr "yìqǐ shǐ yòngshí, size bìxū yǔ out.shape pǐpèi"
 
 #: py/nativeglue.c
 msgid "slice unsupported"
