@@ -53,13 +53,14 @@
 //|
 //|         Key number 0 is the first (or more properly, the zero-th) bit read. In the
 //|         74HC165, this bit is labeled ``Q7``. Key number 1 will be the value of ``Q6``, etc.
-//|         With multiple data pins, key numbers of the next pin are sequentially to the current pin.
+//|         Key numbers are sequenced such that there are ``key_count[0]`` values read from ``data[0]``, followed by ``key_count[1]`` values read from ``data[1]``, etc.
 //|
 //|         An `EventQueue` is created when this object is created and is available in the `events` attribute.
 //|
 //|         :param microcontroller.Pin clock: The shift register clock pin.
 //|           The shift register should clock on a low-to-high transition.
-//|         :param Union[microcontroller.Pin, Sequence[microcontroller.Pin]] data: the incoming shift register data pin(s)
+//|         :param Union[microcontroller.Pin, Sequence[microcontroller.Pin]] data: the incoming shift register data pin(s).
+//|           When a ``microcontroller.Pin`` argument is given, it is logically equivalent to a one-element sequence.
 //|         :param microcontroller.Pin latch:
 //|           Pin used to latch parallel data going into the shift register.
 //|         :param bool value_to_latch: Pin state to latch data being read.
@@ -68,6 +69,7 @@
 //|           The default is ``True``, which is how the 74HC165 operates. The CD4021 latch is the opposite.
 //|           Once the data is latched, it will be shifted out by toggling the clock pin.
 //|         :param Union[int, Sequence[int]] key_count: number of data lines to clock in (per data pin)
+//|           When an ``int`` argument is given, it is logically equivalent to a one-element sequence.
 //|         :param bool value_when_pressed: ``True`` if the pin reads high when the key is pressed.
 //|           ``False`` if the pin reads low (is grounded) when the key is pressed.
 //|         :param float interval: Scan keys no more often than ``interval`` to allow for debouncing.
