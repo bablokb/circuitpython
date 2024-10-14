@@ -1,6 +1,6 @@
 // This file is part of the CircuitPython project: https://circuitpython.org
 //
-// SPDX-FileCopyrightText: Copyright (c) 2024 Mark Komus
+// SPDX-FileCopyrightText: Copyright (c) 2024 Mark Komus, Cooper Dalrymple
 //
 // SPDX-License-Identifier: MIT
 #pragma once
@@ -34,6 +34,7 @@ typedef struct {
 
     bool loop;
     bool more_data;
+    bool freq_shift; // does the echo shift frequencies if delay changes
 
     int8_t *echo_buffer;
     uint32_t echo_buffer_len; // bytes
@@ -41,6 +42,10 @@ typedef struct {
 
     uint32_t echo_buffer_read_pos; // words
     uint32_t echo_buffer_write_pos; // words
+
+    uint32_t echo_buffer_rate; // words << 8
+    uint32_t echo_buffer_left_pos; // words << 8
+    uint32_t echo_buffer_right_pos; // words << 8
 
     mp_obj_t sample;
 } audiodelays_echo_obj_t;

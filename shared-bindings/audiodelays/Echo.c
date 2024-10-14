@@ -53,6 +53,7 @@
 //|         :param int channel_count: The number of channels the source samples contain. 1 = mono; 2 = stereo.
 //|         :param int bits_per_sample: The bits per sample of the effect
 //|         :param bool samples_signed: Effect is signed (True) or unsigned (False)
+//|         :param bool freq_shift: Do echos change frequency as the echo delay changes
 //|
 //|         Playing adding an echo to a synth::
 //|
@@ -64,7 +65,7 @@
 //|
 //|           audio = audiobusio.I2SOut(bit_clock=board.GP20, word_select=board.GP21, data=board.GP22)
 //|           synth = synthio.Synthesizer(channel_count=1, sample_rate=44100)
-//|           echo = audiodelays.Echo(max_delay_ms=1000, delay_ms=850, decay=0.65, buffer_size=1024, channel_count=1, sample_rate=44100, mix=0.7)
+//|           echo = audiodelays.Echo(max_delay_ms=1000, delay_ms=850, decay=0.65, buffer_size=1024, channel_count=1, sample_rate=44100, mix=0.7, freq_shift=False)
 //|           echo.play(synth)
 //|           audio.play(echo)
 //|
@@ -76,7 +77,7 @@
 //|               time.sleep(5)"""
 //|         ...
 static mp_obj_t audiodelays_echo_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *all_args) {
-    enum { ARG_max_delay_ms, ARG_delay_ms, ARG_decay, ARG_mix, ARG_buffer_size, ARG_sample_rate, ARG_bits_per_sample, ARG_samples_signed, ARG_channel_count, };
+    enum { ARG_max_delay_ms, ARG_delay_ms, ARG_decay, ARG_mix, ARG_buffer_size, ARG_sample_rate, ARG_bits_per_sample, ARG_samples_signed, ARG_channel_count, ARG_freq_shift, };
     static const mp_arg_t allowed_args[] = {
         { MP_QSTR_max_delay_ms, MP_ARG_INT | MP_ARG_KW_ONLY, {.u_int = 500 } },
         { MP_QSTR_delay_ms, MP_ARG_OBJ | MP_ARG_KW_ONLY, {.u_obj = MP_OBJ_NULL} },
@@ -87,6 +88,7 @@ static mp_obj_t audiodelays_echo_make_new(const mp_obj_type_t *type, size_t n_ar
         { MP_QSTR_bits_per_sample, MP_ARG_INT | MP_ARG_KW_ONLY, {.u_int = 16} },
         { MP_QSTR_samples_signed, MP_ARG_BOOL | MP_ARG_KW_ONLY, {.u_bool = true} },
         { MP_QSTR_channel_count, MP_ARG_INT | MP_ARG_KW_ONLY, {.u_int = 1 } },
+        { MP_QSTR_freq_shift, MP_ARG_BOOL | MP_ARG_KW_ONLY, {.u_bool = true } },
     };
 
     mp_arg_val_t args[MP_ARRAY_SIZE(allowed_args)];
@@ -102,7 +104,7 @@ static mp_obj_t audiodelays_echo_make_new(const mp_obj_type_t *type, size_t n_ar
     }
 
     audiodelays_echo_obj_t *self = mp_obj_malloc(audiodelays_echo_obj_t, &audiodelays_echo_type);
-    common_hal_audiodelays_echo_construct(self, max_delay_ms, args[ARG_delay_ms].u_obj, args[ARG_decay].u_obj, args[ARG_mix].u_obj, args[ARG_buffer_size].u_int, bits_per_sample, args[ARG_samples_signed].u_bool, channel_count, sample_rate);
+    common_hal_audiodelays_echo_construct(self, max_delay_ms, args[ARG_delay_ms].u_obj, args[ARG_decay].u_obj, args[ARG_mix].u_obj, args[ARG_buffer_size].u_int, bits_per_sample, args[ARG_samples_signed].u_bool, channel_count, sample_rate, args[ARG_freq_shift].u_bool);
 
     return MP_OBJ_FROM_PTR(self);
 }
@@ -222,6 +224,36 @@ MP_PROPERTY_GETSET(audiodelays_echo_mix_obj,
     (mp_obj_t)&audiodelays_echo_get_mix_obj,
     (mp_obj_t)&audiodelays_echo_set_mix_obj);
 
+
+
+//|     freq_shift: bool
+//|     """Does the echo change frequencies as the delay changes."""
+static mp_obj_t audiodelays_echo_obj_get_freq_shift(mp_obj_t self_in) {
+    return mp_obj_new_bool(common_hal_audiodelays_echo_get_freq_shift(self_in));
+}
+MP_DEFINE_CONST_FUN_OBJ_1(audiodelays_echo_get_freq_shift_obj, audiodelays_echo_obj_get_freq_shift);
+
+static mp_obj_t audiodelays_echo_obj_set_freq_shift(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
+    enum { ARG_freq_shift };
+    static const mp_arg_t allowed_args[] = {
+        { MP_QSTR_freq_shift,     MP_ARG_BOOL | MP_ARG_REQUIRED, {} },
+    };
+    audiodelays_echo_obj_t *self = MP_OBJ_TO_PTR(pos_args[0]);
+    mp_arg_val_t args[MP_ARRAY_SIZE(allowed_args)];
+    mp_arg_parse_all(n_args - 1, pos_args + 1, kw_args, MP_ARRAY_SIZE(allowed_args), allowed_args, args);
+
+    common_hal_audiodelays_echo_set_freq_shift(self, args[ARG_freq_shift].u_bool);
+
+    return mp_const_none;
+}
+MP_DEFINE_CONST_FUN_OBJ_KW(audiodelays_echo_set_freq_shift_obj, 1, audiodelays_echo_obj_set_freq_shift);
+
+MP_PROPERTY_GETSET(audiodelays_echo_freq_shift_obj,
+    (mp_obj_t)&audiodelays_echo_get_freq_shift_obj,
+    (mp_obj_t)&audiodelays_echo_set_freq_shift_obj);
+
+
+
 //|     playing: bool
 //|     """True when the effect is playing a sample. (read-only)"""
 static mp_obj_t audiodelays_echo_obj_get_playing(mp_obj_t self_in) {
@@ -284,6 +316,7 @@ static const mp_rom_map_elem_t audiodelays_echo_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_delay_ms), MP_ROM_PTR(&audiodelays_echo_delay_ms_obj) },
     { MP_ROM_QSTR(MP_QSTR_decay), MP_ROM_PTR(&audiodelays_echo_decay_obj) },
     { MP_ROM_QSTR(MP_QSTR_mix), MP_ROM_PTR(&audiodelays_echo_mix_obj) },
+    { MP_ROM_QSTR(MP_QSTR_freq_shift), MP_ROM_PTR(&audiodelays_echo_freq_shift_obj) },
 };
 static MP_DEFINE_CONST_DICT(audiodelays_echo_locals_dict, audiodelays_echo_locals_dict_table);
 
