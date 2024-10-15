@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"PO-Revision-Date: 2024-09-23 03:16+0000\n"
+"PO-Revision-Date: 2024-10-16 21:15+0000\n"
 "Last-Translator: Andi Chandler <andi@gowling.com>\n"
 "Language-Team: none\n"
 "Language: en_GB\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.8-dev\n"
+"X-Generator: Weblate 5.8-rc\n"
 
 #: main.c
 msgid ""
@@ -1993,7 +1993,7 @@ msgstr "The length of rgb_pins must be 6, 12, 18, 24, or 30"
 
 #: shared-module/audiodelays/Echo.c shared-module/audiomixer/MixerVoice.c
 msgid "The sample's %q does not match"
-msgstr ""
+msgstr "The sample's %q does not match"
 
 #: supervisor/shared/safe_mode.c
 msgid "Third-party firmware fatal error."
