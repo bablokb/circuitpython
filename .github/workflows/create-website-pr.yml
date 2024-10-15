@@ -10,7 +10,7 @@ on:
 
 jobs:
   website:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - name: Dump GitHub context
       run: echo "$GITHUB_CONTEXT"
