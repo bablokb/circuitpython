@@ -136,7 +136,8 @@ static mp_obj_t keypad_shiftregisterkeys_make_new(const mp_obj_type_t *type, siz
     size_t key_count_array[num_key_counts];
 
     if (mp_obj_is_int(args[ARG_key_count].u_obj)) {
-        const size_t key_count = (size_t)mp_arg_validate_int_min(args[ARG_key_count].u_int, 1, MP_QSTR_key_count);
+        const size_t key_count =
+            (size_t)mp_arg_validate_int_min(mp_obj_get_int(args[ARG_key_count].u_obj), 1, MP_QSTR_key_count);
         key_count_array[0] = key_count;
     } else {
         for (size_t kc = 0; kc < num_key_counts; kc++) {
