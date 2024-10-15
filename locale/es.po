@@ -1341,7 +1341,8 @@ msgstr "El Layer debe ser un grupo o una subclase de TileGrid"
 
 #: shared-bindings/audiocore/RawSample.c
 msgid "Length of %q must be an even multiple of channel_count * type_size"
-msgstr "La longitud de %q debe ser un múltiplo par de channel_count * type_size"
+msgstr ""
+"La longitud de %q debe ser un múltiplo par de channel_count * type_size"
 
 #: ports/espressif/common-hal/espidf/__init__.c
 msgid "MAC address was invalid"
@@ -2019,21 +2020,9 @@ msgstr "La excepción fue la causa directa de la excepción siguiente:"
 msgid "The length of rgb_pins must be 6, 12, 18, 24, or 30"
 msgstr "La longitud de rgb_pins debe ser 6, 12, 18, 24, o 30"
 
-#: shared-module/audiomixer/MixerVoice.c
-msgid "The sample's bits_per_sample does not match the mixer's"
-msgstr "Los bits_per_sample del sample no igualan a los del mixer"
-
-#: shared-module/audiomixer/MixerVoice.c
-msgid "The sample's channel count does not match the mixer's"
-msgstr "La cuenta de canales del sample no iguala a las del mixer"
-
-#: shared-module/audiomixer/MixerVoice.c
-msgid "The sample's sample rate does not match the mixer's"
-msgstr "El sample rate del sample no iguala al del mixer"
-
-#: shared-module/audiomixer/MixerVoice.c
-msgid "The sample's signedness does not match the mixer's"
-msgstr "El signo del sample no iguala al del mixer"
+#: shared-module/audiodelays/Echo.c shared-module/audiomixer/MixerVoice.c
+msgid "The sample's %q does not match"
+msgstr ""
 
 #: supervisor/shared/safe_mode.c
 msgid "Third-party firmware fatal error."
@@ -2578,7 +2567,7 @@ msgstr "los tamaños de los bitmap deben coincidir"
 msgid "bits must be 32 or less"
 msgstr "los bits deben ser 32 o menos"
 
-#: shared-bindings/audiomixer/Mixer.c
+#: shared-bindings/audiodelays/Echo.c shared-bindings/audiomixer/Mixer.c
 msgid "bits_per_sample must be 8 or 16"
 msgstr "bits_per_sample debe ser 8 ó 16"
 
@@ -4446,6 +4435,18 @@ msgstr "zi debe ser de tipo flotante"
 #: extmod/ulab/code/scipy/signal/signal.c
 msgid "zi must be of shape (n_section, 2)"
 msgstr "zi debe ser una forma (n_section,2)"
+
+#~ msgid "The sample's bits_per_sample does not match the mixer's"
+#~ msgstr "Los bits_per_sample del sample no igualan a los del mixer"
+
+#~ msgid "The sample's channel count does not match the mixer's"
+#~ msgstr "La cuenta de canales del sample no iguala a las del mixer"
+
+#~ msgid "The sample's sample rate does not match the mixer's"
+#~ msgstr "El sample rate del sample no iguala al del mixer"
+
+#~ msgid "The sample's signedness does not match the mixer's"
+#~ msgstr "El signo del sample no iguala al del mixer"
 
 #~ msgid "Buffer length must be a multiple of 512"
 #~ msgstr "El tamaño del buffer debe ser múltiplo de 512"

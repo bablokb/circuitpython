@@ -2013,22 +2013,9 @@ msgstr ""
 msgid "The length of rgb_pins must be 6, 12, 18, 24, or 30"
 msgstr "Die Länge von rgb_pins muss 6, 12, 18, 24 oder 30 betragen"
 
-#: shared-module/audiomixer/MixerVoice.c
-msgid "The sample's bits_per_sample does not match the mixer's"
+#: shared-module/audiodelays/Echo.c shared-module/audiomixer/MixerVoice.c
+msgid "The sample's %q does not match"
 msgstr ""
-"Das bits_per_sample des Samples stimmt nicht mit dem des Mixers überein"
-
-#: shared-module/audiomixer/MixerVoice.c
-msgid "The sample's channel count does not match the mixer's"
-msgstr "Die Kanalanzahl des Samples stimmt nicht mit der des Mischers überein"
-
-#: shared-module/audiomixer/MixerVoice.c
-msgid "The sample's sample rate does not match the mixer's"
-msgstr "Die Abtastrate der Probe stimmt nicht mit der des Mischers überein"
-
-#: shared-module/audiomixer/MixerVoice.c
-msgid "The sample's signedness does not match the mixer's"
-msgstr "Der Vorzeichentyp des Samples stimmt nicht mit dem des Mixers überein"
 
 #: supervisor/shared/safe_mode.c
 msgid "Third-party firmware fatal error."
@@ -2575,7 +2562,7 @@ msgstr "Bitmap-Größen müssen übereinstimmen"
 msgid "bits must be 32 or less"
 msgstr "bits müssen 32 oder kleiner sein"
 
-#: shared-bindings/audiomixer/Mixer.c
+#: shared-bindings/audiodelays/Echo.c shared-bindings/audiomixer/Mixer.c
 msgid "bits_per_sample must be 8 or 16"
 msgstr "Es müssen 8 oder 16 bits_per_sample sein"
 
@@ -4457,6 +4444,21 @@ msgstr "zi muss eine Gleitkommazahl sein"
 #: extmod/ulab/code/scipy/signal/signal.c
 msgid "zi must be of shape (n_section, 2)"
 msgstr "zi muss die Form (n_section, 2) haben"
+
+#~ msgid "The sample's bits_per_sample does not match the mixer's"
+#~ msgstr ""
+#~ "Das bits_per_sample des Samples stimmt nicht mit dem des Mixers überein"
+
+#~ msgid "The sample's channel count does not match the mixer's"
+#~ msgstr ""
+#~ "Die Kanalanzahl des Samples stimmt nicht mit der des Mischers überein"
+
+#~ msgid "The sample's sample rate does not match the mixer's"
+#~ msgstr "Die Abtastrate der Probe stimmt nicht mit der des Mischers überein"
+
+#~ msgid "The sample's signedness does not match the mixer's"
+#~ msgstr ""
+#~ "Der Vorzeichentyp des Samples stimmt nicht mit dem des Mixers überein"
 
 #~ msgid "Buffer length must be a multiple of 512"
 #~ msgstr "Die Pufferlänge muss ein vielfaches von 512 sein"

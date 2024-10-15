@@ -2008,21 +2008,9 @@ msgstr "shàng shù yì cháng shì yǐ xià yì cháng de zhí jiē yuán yīn:
 msgid "The length of rgb_pins must be 6, 12, 18, 24, or 30"
 msgstr "Rgb_pins de chángdù bìxū wèi 6,12,18,24 huò 30"
 
-#: shared-module/audiomixer/MixerVoice.c
-msgid "The sample's bits_per_sample does not match the mixer's"
-msgstr "Yàngběn de bits_per_sample yǔ hǔn yīn qì bù pǐpèi"
-
-#: shared-module/audiomixer/MixerVoice.c
-msgid "The sample's channel count does not match the mixer's"
-msgstr "Yàngběn de píndào jìshù yǔ hǔn yīn qì bù xiāngfú"
-
-#: shared-module/audiomixer/MixerVoice.c
-msgid "The sample's sample rate does not match the mixer's"
-msgstr "Yàngběn de yàngběn sùdù yǔ hǔn yīn qì de xiāngchà bù pǐpèi"
-
-#: shared-module/audiomixer/MixerVoice.c
-msgid "The sample's signedness does not match the mixer's"
-msgstr "Yàngběn de qiānmíng yǔ hǔn yīn qì de qiānmíng bù pǐpèi"
+#: shared-module/audiodelays/Echo.c shared-module/audiomixer/MixerVoice.c
+msgid "The sample's %q does not match"
+msgstr ""
 
 #: supervisor/shared/safe_mode.c
 msgid "Third-party firmware fatal error."
@@ -2563,7 +2551,7 @@ msgstr "wèi tú dà xiǎo bì xū pǐ pèi"
 msgid "bits must be 32 or less"
 msgstr "wèi bì xū shì 32 huò gèng shǎo"
 
-#: shared-bindings/audiomixer/Mixer.c
+#: shared-bindings/audiodelays/Echo.c shared-bindings/audiomixer/Mixer.c
 msgid "bits_per_sample must be 8 or 16"
 msgstr "měi jiàn yàngběn bìxū wèi 8 huò 16"
 
@@ -4430,6 +4418,18 @@ msgstr "zi bìxū wèi fú diǎn xíng"
 #: extmod/ulab/code/scipy/signal/signal.c
 msgid "zi must be of shape (n_section, 2)"
 msgstr "zi bìxū jùyǒu xíngzhuàng (n_section,2)"
+
+#~ msgid "The sample's bits_per_sample does not match the mixer's"
+#~ msgstr "Yàngběn de bits_per_sample yǔ hǔn yīn qì bù pǐpèi"
+
+#~ msgid "The sample's channel count does not match the mixer's"
+#~ msgstr "Yàngběn de píndào jìshù yǔ hǔn yīn qì bù xiāngfú"
+
+#~ msgid "The sample's sample rate does not match the mixer's"
+#~ msgstr "Yàngběn de yàngběn sùdù yǔ hǔn yīn qì de xiāngchà bù pǐpèi"
+
+#~ msgid "The sample's signedness does not match the mixer's"
+#~ msgstr "Yàngběn de qiānmíng yǔ hǔn yīn qì de qiānmíng bù pǐpèi"
 
 #~ msgid "Buffer length must be a multiple of 512"
 #~ msgstr "Huǎnchōngqū chángdù bìxū wéi 512 de bèishù"

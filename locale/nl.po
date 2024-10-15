@@ -1981,21 +1981,9 @@ msgstr ""
 msgid "The length of rgb_pins must be 6, 12, 18, 24, or 30"
 msgstr "De lengte van rgb_pins moet 6, 12, 18, 24 of 30 zijn"
 
-#: shared-module/audiomixer/MixerVoice.c
-msgid "The sample's bits_per_sample does not match the mixer's"
-msgstr "De sample's bits_per_sample komen niet overeen met die van de mixer"
-
-#: shared-module/audiomixer/MixerVoice.c
-msgid "The sample's channel count does not match the mixer's"
-msgstr "De sample's kanaal aantal komt niet overeen met die van de mixer"
-
-#: shared-module/audiomixer/MixerVoice.c
-msgid "The sample's sample rate does not match the mixer's"
-msgstr "De sample's sample rate komt niet overeen met die van de mixer"
-
-#: shared-module/audiomixer/MixerVoice.c
-msgid "The sample's signedness does not match the mixer's"
-msgstr "De sample's signature komt niet overeen met die van de mixer"
+#: shared-module/audiodelays/Echo.c shared-module/audiomixer/MixerVoice.c
+msgid "The sample's %q does not match"
+msgstr ""
 
 #: supervisor/shared/safe_mode.c
 msgid "Third-party firmware fatal error."
@@ -2531,7 +2519,7 @@ msgstr ""
 msgid "bits must be 32 or less"
 msgstr ""
 
-#: shared-bindings/audiomixer/Mixer.c
+#: shared-bindings/audiodelays/Echo.c shared-bindings/audiomixer/Mixer.c
 msgid "bits_per_sample must be 8 or 16"
 msgstr "bits_per_sample moet 8 of 16 zijn"
 
@@ -4391,6 +4379,18 @@ msgstr "zi moet van type float zijn"
 #: extmod/ulab/code/scipy/signal/signal.c
 msgid "zi must be of shape (n_section, 2)"
 msgstr "zi moet vorm (n_section, 2) hebben"
+
+#~ msgid "The sample's bits_per_sample does not match the mixer's"
+#~ msgstr "De sample's bits_per_sample komen niet overeen met die van de mixer"
+
+#~ msgid "The sample's channel count does not match the mixer's"
+#~ msgstr "De sample's kanaal aantal komt niet overeen met die van de mixer"
+
+#~ msgid "The sample's sample rate does not match the mixer's"
+#~ msgstr "De sample's sample rate komt niet overeen met die van de mixer"
+
+#~ msgid "The sample's signedness does not match the mixer's"
+#~ msgstr "De sample's signature komt niet overeen met die van de mixer"
 
 #~ msgid "Buffer length must be a multiple of 512"
 #~ msgstr "Buffer lengte moet een veelvoud van 512 zijn"

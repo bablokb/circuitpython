@@ -2002,21 +2002,9 @@ msgstr "Ovanstående undantag var den direkta orsaken till följande undantag:"
 msgid "The length of rgb_pins must be 6, 12, 18, 24, or 30"
 msgstr "Längden på rgb_pins vara 6, 12, 18, 24 eller 30"
 
-#: shared-module/audiomixer/MixerVoice.c
-msgid "The sample's bits_per_sample does not match the mixer's"
-msgstr "Samplingens bits_per_sample matchar inte mixerns"
-
-#: shared-module/audiomixer/MixerVoice.c
-msgid "The sample's channel count does not match the mixer's"
-msgstr "Samplingens kanalantal matchar inte mixerns"
-
-#: shared-module/audiomixer/MixerVoice.c
-msgid "The sample's sample rate does not match the mixer's"
-msgstr "Samplingens frekvens matchar inte mixerns"
-
-#: shared-module/audiomixer/MixerVoice.c
-msgid "The sample's signedness does not match the mixer's"
-msgstr "Samplingens signerad/osignerad stämmer inte med mixern"
+#: shared-module/audiodelays/Echo.c shared-module/audiomixer/MixerVoice.c
+msgid "The sample's %q does not match"
+msgstr ""
 
 #: supervisor/shared/safe_mode.c
 msgid "Third-party firmware fatal error."
@@ -2557,7 +2545,7 @@ msgstr "bitmappsstorlekar måste matcha"
 msgid "bits must be 32 or less"
 msgstr "bits måste vara 32 eller färre"
 
-#: shared-bindings/audiomixer/Mixer.c
+#: shared-bindings/audiodelays/Echo.c shared-bindings/audiomixer/Mixer.c
 msgid "bits_per_sample must be 8 or 16"
 msgstr "bits_per_sample måste vara 8 eller 16"
 
@@ -4418,6 +4406,18 @@ msgstr "zi måste vara av typ float"
 #: extmod/ulab/code/scipy/signal/signal.c
 msgid "zi must be of shape (n_section, 2)"
 msgstr "zi måste vara i formen (n_section, 2)"
+
+#~ msgid "The sample's bits_per_sample does not match the mixer's"
+#~ msgstr "Samplingens bits_per_sample matchar inte mixerns"
+
+#~ msgid "The sample's channel count does not match the mixer's"
+#~ msgstr "Samplingens kanalantal matchar inte mixerns"
+
+#~ msgid "The sample's sample rate does not match the mixer's"
+#~ msgstr "Samplingens frekvens matchar inte mixerns"
+
+#~ msgid "The sample's signedness does not match the mixer's"
+#~ msgstr "Samplingens signerad/osignerad stämmer inte med mixern"
 
 #~ msgid "Buffer length must be a multiple of 512"
 #~ msgstr "Buffertlängd måste vara en multipel av 512"

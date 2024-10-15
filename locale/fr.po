@@ -2035,22 +2035,9 @@ msgstr "L'exception précédente est la cause directe de l'exception suivante:"
 msgid "The length of rgb_pins must be 6, 12, 18, 24, or 30"
 msgstr "La taille de rgb_pins doit être 6, 12, 18, 24 ou 30"
 
-#: shared-module/audiomixer/MixerVoice.c
-msgid "The sample's bits_per_sample does not match the mixer's"
+#: shared-module/audiodelays/Echo.c shared-module/audiomixer/MixerVoice.c
+msgid "The sample's %q does not match"
 msgstr ""
-"Le 'bits_per_sample' de l'échantillon ne correspond pas à celui du mixer"
-
-#: shared-module/audiomixer/MixerVoice.c
-msgid "The sample's channel count does not match the mixer's"
-msgstr "Le canal de l'échantillon ne correspond pas à celui du mixer"
-
-#: shared-module/audiomixer/MixerVoice.c
-msgid "The sample's sample rate does not match the mixer's"
-msgstr "L'échantillonage de l'échantillon ne correspond pas à celui du mixer"
-
-#: shared-module/audiomixer/MixerVoice.c
-msgid "The sample's signedness does not match the mixer's"
-msgstr "Le signe de l'échantillon ne correspond pas à celui du mixer"
 
 #: supervisor/shared/safe_mode.c
 msgid "Third-party firmware fatal error."
@@ -2597,7 +2584,7 @@ msgstr "les tailles des images doivent correspondre"
 msgid "bits must be 32 or less"
 msgstr "les bits doivent être 32 ou moins"
 
-#: shared-bindings/audiomixer/Mixer.c
+#: shared-bindings/audiodelays/Echo.c shared-bindings/audiomixer/Mixer.c
 msgid "bits_per_sample must be 8 or 16"
 msgstr "'bits_per_sample' doivent être 8 ou 16"
 
@@ -4474,6 +4461,20 @@ msgstr "zi doit être de type float"
 #: extmod/ulab/code/scipy/signal/signal.c
 msgid "zi must be of shape (n_section, 2)"
 msgstr "zi doit être de forme (n_section, 2)"
+
+#~ msgid "The sample's bits_per_sample does not match the mixer's"
+#~ msgstr ""
+#~ "Le 'bits_per_sample' de l'échantillon ne correspond pas à celui du mixer"
+
+#~ msgid "The sample's channel count does not match the mixer's"
+#~ msgstr "Le canal de l'échantillon ne correspond pas à celui du mixer"
+
+#~ msgid "The sample's sample rate does not match the mixer's"
+#~ msgstr ""
+#~ "L'échantillonage de l'échantillon ne correspond pas à celui du mixer"
+
+#~ msgid "The sample's signedness does not match the mixer's"
+#~ msgstr "Le signe de l'échantillon ne correspond pas à celui du mixer"
 
 #~ msgid "Buffer length must be a multiple of 512"
 #~ msgstr "La longueur de la mémoire tampon doit être un multiple de 512"

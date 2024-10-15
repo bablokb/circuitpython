@@ -2019,21 +2019,9 @@ msgstr "A exceção acima foi a causa direta da seguinte exceção:"
 msgid "The length of rgb_pins must be 6, 12, 18, 24, or 30"
 msgstr "O comprimento dos rgb_pins devem ser 6, 12, 18, 24, ou 30"
 
-#: shared-module/audiomixer/MixerVoice.c
-msgid "The sample's bits_per_sample does not match the mixer's"
-msgstr "A amostragem bits_per_sample não coincide com a do mixer"
-
-#: shared-module/audiomixer/MixerVoice.c
-msgid "The sample's channel count does not match the mixer's"
-msgstr "A contagem da amostragem dos canais não coincide com o a do mixer"
-
-#: shared-module/audiomixer/MixerVoice.c
-msgid "The sample's sample rate does not match the mixer's"
-msgstr "A taxa de amostragem da amostra não coincide com a do mixer"
-
-#: shared-module/audiomixer/MixerVoice.c
-msgid "The sample's signedness does not match the mixer's"
-msgstr "A amostragem \"signedness\" não coincide com a do mixer"
+#: shared-module/audiodelays/Echo.c shared-module/audiomixer/MixerVoice.c
+msgid "The sample's %q does not match"
+msgstr ""
 
 #: supervisor/shared/safe_mode.c
 msgid "Third-party firmware fatal error."
@@ -2582,7 +2570,7 @@ msgstr "os tamanhos do bitmap devem coincidir"
 msgid "bits must be 32 or less"
 msgstr "bits deve ser 32 ou menos"
 
-#: shared-bindings/audiomixer/Mixer.c
+#: shared-bindings/audiodelays/Echo.c shared-bindings/audiomixer/Mixer.c
 msgid "bits_per_sample must be 8 or 16"
 msgstr "bits_per_sample deve ser 8 ou 16"
 
@@ -4046,7 +4034,8 @@ msgstr "conjunto não suportado"
 
 #: extmod/ulab/code/numpy/random/random.c
 msgid "shape must be None, and integer or a tuple of integers"
-msgstr "shape deve ser None, um número inteiro ou uma tupla de números inteiros"
+msgstr ""
+"shape deve ser None, um número inteiro ou uma tupla de números inteiros"
 
 #: extmod/ulab/code/ndarray.c
 msgid "shape must be integer or tuple of integers"
@@ -4458,6 +4447,18 @@ msgstr "zi deve ser de um tipo float"
 #: extmod/ulab/code/scipy/signal/signal.c
 msgid "zi must be of shape (n_section, 2)"
 msgstr "zi deve estar na forma (n_section, 2)"
+
+#~ msgid "The sample's bits_per_sample does not match the mixer's"
+#~ msgstr "A amostragem bits_per_sample não coincide com a do mixer"
+
+#~ msgid "The sample's channel count does not match the mixer's"
+#~ msgstr "A contagem da amostragem dos canais não coincide com o a do mixer"
+
+#~ msgid "The sample's sample rate does not match the mixer's"
+#~ msgstr "A taxa de amostragem da amostra não coincide com a do mixer"
+
+#~ msgid "The sample's signedness does not match the mixer's"
+#~ msgstr "A amostragem \"signedness\" não coincide com a do mixer"
 
 #~ msgid "Buffer length must be a multiple of 512"
 #~ msgstr "O comprimento do Buffer deve ser um múltiplo de 512"

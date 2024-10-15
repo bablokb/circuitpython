@@ -2023,21 +2023,9 @@ msgstr ""
 msgid "The length of rgb_pins must be 6, 12, 18, 24, or 30"
 msgstr "Длина rgb_pins должна быть 6, 12, 18, 24 или 30"
 
-#: shared-module/audiomixer/MixerVoice.c
-msgid "The sample's bits_per_sample does not match the mixer's"
-msgstr "Bits_per_sample сэмпла не соответствует битам микшера"
-
-#: shared-module/audiomixer/MixerVoice.c
-msgid "The sample's channel count does not match the mixer's"
-msgstr "Количество каналов образца не совпадает с количеством каналов микшера"
-
-#: shared-module/audiomixer/MixerVoice.c
-msgid "The sample's sample rate does not match the mixer's"
-msgstr "Частота дискретизации семпла не соответствует частоте микшера"
-
-#: shared-module/audiomixer/MixerVoice.c
-msgid "The sample's signedness does not match the mixer's"
-msgstr "Подпись семпла не совпадает с подписью микшера"
+#: shared-module/audiodelays/Echo.c shared-module/audiomixer/MixerVoice.c
+msgid "The sample's %q does not match"
+msgstr ""
 
 #: supervisor/shared/safe_mode.c
 msgid "Third-party firmware fatal error."
@@ -2585,7 +2573,7 @@ msgstr "Размеры растровых изображений должны с
 msgid "bits must be 32 or less"
 msgstr "биты должны быть 32 или менее"
 
-#: shared-bindings/audiomixer/Mixer.c
+#: shared-bindings/audiodelays/Echo.c shared-bindings/audiomixer/Mixer.c
 msgid "bits_per_sample must be 8 or 16"
 msgstr "bits_per_sample должно быть 8 или 16"
 
@@ -4463,6 +4451,19 @@ msgstr "zi должно быть типа float"
 #: extmod/ulab/code/scipy/signal/signal.c
 msgid "zi must be of shape (n_section, 2)"
 msgstr "zi должен иметь форму (n_section, 2)"
+
+#~ msgid "The sample's bits_per_sample does not match the mixer's"
+#~ msgstr "Bits_per_sample сэмпла не соответствует битам микшера"
+
+#~ msgid "The sample's channel count does not match the mixer's"
+#~ msgstr ""
+#~ "Количество каналов образца не совпадает с количеством каналов микшера"
+
+#~ msgid "The sample's sample rate does not match the mixer's"
+#~ msgstr "Частота дискретизации семпла не соответствует частоте микшера"
+
+#~ msgid "The sample's signedness does not match the mixer's"
+#~ msgstr "Подпись семпла не совпадает с подписью микшера"
 
 #~ msgid "Buffer length must be a multiple of 512"
 #~ msgstr "Размер буфера должен быть кратен 512"
