@@ -41,9 +41,12 @@
 //|         This allocates a very large framebuffer and is most likely to succeed
 //|         the earlier it is attempted.
 //|
-//|         Each dp and dn pair of pins must be neighboring, such as 19 and 20.
-//|         They must also be ordered the same way. In other words, dp must be
-//|         less than dn for all pairs or dp must be greater than dn for all pairs.
+//|         On RP2040, each dp and dn pair of pins must be neighboring, such as
+//|         19 and 20. They must also be ordered the same way. In other words,
+//|         dp must be less than dn for all pairs or dp must be greater than dn
+//|         for all pairs.
+//|
+//|         On RP2350, all pins must be an HSTX output but can be in any order.
 //|
 //|         The framebuffer pixel format varies depending on color_depth:
 //|
@@ -53,16 +56,24 @@
 //|         * 8 - Each byte is a pixels in RGB332 format.
 //|         * 16 - Each two bytes are a pixel in RGB565 format.
 //|
-//|         Two output resolutions are currently supported, 640x480 and 800x480.
-//|         Monochrome framebuffers (color_depth=1 or 2) must be full resolution.
-//|         Color framebuffers must be half resolution (320x240 or 400x240) and
-//|         pixels will be duplicated to create the signal.
+//|         Output resolution support varies between the RP2040 and RP2350.
+//|
+//|         On RP2040, two output resolutions are currently supported, 640x480
+//|         and 800x480. Monochrome framebuffers (color_depth=1 or 2) must be
+//|         full resolution. Color framebuffers must be half resolution (320x240
+//|         or 400x240) and pixels will be duplicated to create the signal.
+//|
+//|         On RP2350, output resolution is always 640x480. Monochrome
+//|         framebuffers (color_depth=1 or 2) must be full resolution. 4-bit
+//|         color must also be full resolution. 8-bit color can be half or full
+//|         resolution. 16-bit color must be half resolution due to RAM
+//|         limitations.
 //|
 //|         A Framebuffer is often used in conjunction with a
 //|         `framebufferio.FramebufferDisplay`.
 //|
-//|         :param int width: the width of the target display signal. Only 320, 400, 640 or 800 is currently supported depending on color_depth.
-//|         :param int height: the height of the target display signal. Only 240 or 480 is currently supported depending on color_depth.
+//|         :param int width: the width of the target display signal. Only 320, 400, 640 or 800 is currently supported depending on color_depth and chip set.
+//|         :param int height: the height of the target display signal. Only 240 or 480 is currently supported depending on color_depth and chip set.
 //|         :param ~microcontroller.Pin clk_dp: the positive clock signal pin
 //|         :param ~microcontroller.Pin clk_dn: the negative clock signal pin
 //|         :param ~microcontroller.Pin red_dp: the positive red signal pin
@@ -72,7 +83,7 @@
 //|         :param ~microcontroller.Pin blue_dp: the positive blue signal pin
 //|         :param ~microcontroller.Pin blue_dn: the negative blue signal pin
 //|         :param int color_depth: the color depth of the framebuffer in bits. 1, 2 for grayscale
-//|           and 8 or 16 for color
+//|           and 4 (RP2350 only), 8 or 16 for color
 //|         """
 
 static mp_obj_t picodvi_framebuffer_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *all_args) {
