@@ -1773,7 +1773,7 @@ msgstr "Pins muss ein geteiltes PWM-Stück sein"
 
 #: shared-module/usb/core/Device.c
 msgid "Pipe error"
-msgstr ""
+msgstr "Pipe-Fehler"
 
 #: py/builtinhelp.c
 msgid "Plus any modules on the filesystem\n"
@@ -1989,7 +1989,7 @@ msgstr "Gib genau einen von data0 oder data_pins an"
 
 #: supervisor/shared/safe_mode.c
 msgid "Stack overflow. Increase stack size."
-msgstr ""
+msgstr "Stapelüberlauf. Erhöhe die Stapelgröße."
 
 #: shared-bindings/alarm/time/TimeAlarm.c
 msgid "Supply one of monotonic_time or epoch_time"
