@@ -212,7 +212,7 @@ audioio_get_buffer_result_t audiofilters_filter_get_buffer(audiofilters_filter_o
             int16_t *sample_src = (int16_t *)self->sample_remaining_buffer; // for 16-bit samples
             int8_t *sample_hsrc = (int8_t *)self->sample_remaining_buffer; // for 8-bit samples
 
-            if (mix <= 0.01) { // if mix is zero pure sample only
+            if (mix <= 0.01 || self->filter_obj == mp_const_none) { // if mix is zero pure sample only or no biquad filter object is provided
                 for (uint32_t i = 0; i < n; i++) {
                     if (MP_LIKELY(self->bits_per_sample == 16)) {
                         word_buffer[i] = sample_src[i];
