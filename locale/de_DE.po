@@ -6,7 +6,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-01-04 12:55-0600\n"
-"PO-Revision-Date: 2024-10-22 01:09+0000\n"
+"PO-Revision-Date: 2024-10-22 01:10+0000\n"
 "Last-Translator: Ettore Atalan <atalanttore@googlemail.com>\n"
 "Language: de_DE\n"
 "MIME-Version: 1.0\n"
@@ -1989,7 +1989,7 @@ msgstr "Gib genau einen von data0 oder data_pins an"
 
 #: supervisor/shared/safe_mode.c
 msgid "Stack overflow. Increase stack size."
-msgstr "Stapelüberlauf. Erhöhe die Stapelgröße."
+msgstr "Stapelüberlauf. Stapelgröße erhöhen."
 
 #: shared-bindings/alarm/time/TimeAlarm.c
 msgid "Supply one of monotonic_time or epoch_time"
@@ -2071,7 +2071,7 @@ msgstr "Zu viele Kanäle im sample."
 
 #: ports/espressif/common-hal/_bleio/Characteristic.c
 msgid "Too many descriptors"
-msgstr ""
+msgstr "Zu viele Deskriptoren"
 
 #: shared-module/displayio/__init__.c
 msgid "Too many display busses; forgot displayio.release_displays() ?"
