@@ -7,7 +7,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-01-04 12:55-0600\n"
 "PO-Revision-Date: 2024-10-22 01:09+0000\n"
-"Last-Translator: Ettore Atalan <atalanttore@googlemail.com>\n"
+"Last-Translator: Sokromatrix <kroschewski1971@gmail.com>\n"
 "Language: de_DE\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1552,7 +1552,7 @@ msgstr "Kein Timer verfügbar"
 
 #: shared-module/usb/core/Device.c
 msgid "No usb host port initialized"
-msgstr ""
+msgstr "Kein initialisierter USB-Host-Port"
 
 #: ports/nordic/common-hal/_bleio/__init__.c
 msgid "Nordic system firmware out of memory"
