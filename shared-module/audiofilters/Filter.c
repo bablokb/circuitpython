@@ -43,6 +43,22 @@ void common_hal_audiofilters_filter_construct(audiofilters_filter_obj_t *self,
 
     self->last_buf_idx = 1; // Which buffer to use first, toggle between 0 and 1
 
+    // This buffer will be used to process samples through the biquad filter
+    self->filter_buffer[0] = m_malloc(SYNTHIO_MAX_DUR * sizeof(int32_t));
+    if (self->filter_buffer[0] == NULL) {
+        common_hal_audiofilters_filter_deinit(self);
+        m_malloc_fail(SYNTHIO_MAX_DUR * sizeof(int32_t));
+    }
+    memset(self->filter_buffer[0], 0, SYNTHIO_MAX_DUR * sizeof(int32_t));
+
+    // This buffer will be used to mix original sample with processed signal
+    self->filter_buffer[1] = m_malloc(SYNTHIO_MAX_DUR * sizeof(int32_t));
+    if (self->filter_buffer[1] == NULL) {
+        common_hal_audiofilters_filter_deinit(self);
+        m_malloc_fail(SYNTHIO_MAX_DUR * sizeof(int32_t));
+    }
+    memset(self->filter_buffer[1], 0, SYNTHIO_MAX_DUR * sizeof(int32_t));
+
     // Initialize other values most effects will need.
     self->sample = NULL; // The current playing sample
     self->sample_remaining_buffer = NULL; // Pointer to the start of the sample buffer we have not played
@@ -78,6 +94,8 @@ void common_hal_audiofilters_filter_deinit(audiofilters_filter_obj_t *self) {
     }
     self->buffer[0] = NULL;
     self->buffer[1] = NULL;
+    self->filter_buffer[0] = NULL;
+    self->filter_buffer[1] = NULL;
 }
 
 mp_obj_t common_hal_audiofilters_filter_get_filter(audiofilters_filter_obj_t *self) {
@@ -115,6 +133,8 @@ void audiofilters_filter_reset_buffer(audiofilters_filter_obj_t *self,
 
     memset(self->buffer[0], 0, self->buffer_len);
     memset(self->buffer[1], 0, self->buffer_len);
+    memset(self->filter_buffer[0], 0, SYNTHIO_MAX_DUR * sizeof(int32_t));
+    memset(self->filter_buffer[1], 0, SYNTHIO_MAX_DUR * sizeof(int32_t));
 
     synthio_biquad_filter_reset(&self->filter_state);
 }
@@ -164,6 +184,32 @@ void common_hal_audiofilters_filter_stop(audiofilters_filter_obj_t *self) {
     // When the sample is set to stop playing do any cleanup here
     self->sample = NULL;
     return;
+}
+
+#define RANGE_LOW_16 (-28000)
+#define RANGE_HIGH_16 (28000)
+#define RANGE_SHIFT_16 (16)
+#define RANGE_SCALE_16 (0xfffffff / (32768 * 2 - RANGE_HIGH_16)) // 2 for echo+sample
+
+// dynamic range compression via a downward compressor with hard knee
+//
+// When the output value is within the range +-28000 (about 85% of full scale),
+// it is unchanged. Otherwise, it undergoes a gain reduction so that the
+// largest possible values, (+32768,-32767) * 2 (2 for echo and sample),
+// still fit within the output range
+//
+// This produces a much louder overall volume with multiple voices, without
+// much additional processing.
+//
+// https://en.wikipedia.org/wiki/Dynamic_range_compression
+static
+int16_t mix_down_sample(int32_t sample) {
+    if (sample < RANGE_LOW_16) {
+        sample = (((sample - RANGE_LOW_16) * RANGE_SCALE_16) >> RANGE_SHIFT_16) + RANGE_LOW_16;
+    } else if (sample > RANGE_HIGH_16) {
+        sample = (((sample - RANGE_HIGH_16) * RANGE_SCALE_16) >> RANGE_SHIFT_16) + RANGE_HIGH_16;
+    }
+    return sample;
 }
 
 audioio_get_buffer_result_t audiofilters_filter_get_buffer(audiofilters_filter_obj_t *self, bool single_channel_output, uint8_t channel,
@@ -221,34 +267,49 @@ audioio_get_buffer_result_t audiofilters_filter_get_buffer(audiofilters_filter_o
                     }
                 }
             } else {
-                for (uint32_t i = 0; i < n; i++) {
-                    int32_t sample_word = 0;
-                    if (MP_LIKELY(self->bits_per_sample == 16)) {
-                        sample_word = sample_src[i];
-                    } else {
-                        if (self->samples_signed) {
-                            sample_word = sample_hsrc[i];
+                uint32_t i = 0;
+                while (i < n) {
+                    uint32_t n_samples = MIN(SYNTHIO_MAX_DUR, n - i);
+
+                    // Fill filter buffer with samples
+                    for (uint32_t j = 0; j < n_samples; j++) {
+                        if (MP_LIKELY(self->bits_per_sample == 16)) {
+                            self->filter_buffer[0][j] = sample_src[i + j];
                         } else {
-                            // Be careful here changing from an 8 bit unsigned to signed into a 32-bit signed
-                            sample_word = (int8_t)(((uint8_t)sample_hsrc[i]) ^ 0x80);
+                            if (self->samples_signed) {
+                                self->filter_buffer[0][j] = sample_hsrc[i + j];
+                            } else {
+                                // Be careful here changing from an 8 bit unsigned to signed into a 32-bit signed
+                                self->filter_buffer[0][j] = (int8_t)(((uint8_t)sample_hsrc[i + j]) ^ 0x80);
+                            }
                         }
                     }
 
-                    // TODO: Filter through synthio_biquad_filter_samples
+                    // Copy original signal for mixing back in later
+                    memcpy(self->filter_buffer[1], self->filter_buffer[0], n_samples);
 
-                    if (MP_LIKELY(self->bits_per_sample == 16)) {
-                        word_buffer[i] = (sample_word * (1.0 - mix)) + (word * mix);
-                        if (!self->samples_signed) {
-                            word_buffer[i] ^= 0x8000;
-                        }
-                    } else {
-                        int8_t mixed = (sample_word * (1.0 - mix)) + (word * mix);
-                        if (self->samples_signed) {
-                            hword_buffer[i] = mixed;
+                    // Process biquad filter
+                    synthio_biquad_filter_samples(&self->filter_state, self->filter_buffer[0], n_samples);
+
+                    // Mix processed signal with original sample and transfer to output buffer
+                    for (uint32_t j = 0; j < n_samples; j++) {
+                        int32_t word = (self->filter_buffer[1][j] * (1.0 - mix)) + (self->filter_buffer[0][j] * mix);
+                        if (MP_LIKELY(self->bits_per_sample == 16)) {
+                            word_buffer[i + j] = mix_down_sample(word);
+                            if (!self->samples_signed) {
+                                word_buffer[i + j] ^= 0x8000;
+                            }
                         } else {
-                            hword_buffer[i] = (uint8_t)mixed ^ 0x80;
+                            int8_t mixed = word;
+                            if (self->samples_signed) {
+                                hword_buffer[i + j] = mixed;
+                            } else {
+                                hword_buffer[i + j] = (uint8_t)mixed ^ 0x80;
+                            }
                         }
                     }
+
+                    i += n_samples;
                 }
             }
 

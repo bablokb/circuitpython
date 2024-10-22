@@ -32,6 +32,8 @@ typedef struct {
     uint8_t *sample_remaining_buffer;
     uint32_t sample_buffer_length;
 
+    int32_t *filter_buffer[2];
+
     bool loop;
     bool more_data;
 
