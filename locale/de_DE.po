@@ -6,7 +6,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-01-04 12:55-0600\n"
-"PO-Revision-Date: 2024-10-22 01:04+0000\n"
+"PO-Revision-Date: 2024-10-22 01:06+0000\n"
 "Last-Translator: Ettore Atalan <atalanttore@googlemail.com>\n"
 "Language: de_DE\n"
 "MIME-Version: 1.0\n"
@@ -689,7 +689,7 @@ msgstr "Die Pufferlänge %d ist zu groß. Sie muss kleiner als %d sein"
 #: shared-module/sdcardio/SDCard.c
 #, c-format
 msgid "Buffer must be a multiple of %d bytes"
-msgstr ""
+msgstr "Puffer muss ein Vielfaches von %d Bytes sein"
 
 #: shared-bindings/_bleio/PacketBuffer.c
 #, c-format
@@ -3215,7 +3215,7 @@ msgstr "import * nicht auf Modulebene"
 
 #: py/persistentcode.c
 msgid "incompatible .mpy arch"
-msgstr ""
+msgstr "inkompatible .mpy-Architektur"
 
 #: py/persistentcode.c
 msgid "incompatible .mpy file"
@@ -3355,7 +3355,7 @@ msgstr "Das Intervall muss im Bereich %s-%s sein"
 
 #: py/compile.c
 msgid "invalid arch"
-msgstr ""
+msgstr "ungültige Architektur"
 
 #: shared-bindings/bitmaptools/__init__.c
 #, c-format
@@ -3442,7 +3442,8 @@ msgstr ""
 #: py/argcheck.c
 msgid "keyword argument(s) not implemented - use normal args instead"
 msgstr ""
-"Schlüsselwortargument(e) nicht umgesetzt - Nutze stattdessen normale args"
+"Schlüsselwortargument(e) nicht umgesetzt - nutze stattdessen normale "
+"Argumente"
 
 #: py/emitinlinethumb.c py/emitinlinextensa.c
 msgid "label '%q' not defined"
