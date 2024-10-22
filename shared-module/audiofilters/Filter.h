@@ -15,8 +15,10 @@ extern const mp_obj_type_t audiofilters_filter_type;
 
 typedef struct {
     mp_obj_base_t base;
-    biquad_filter_state biquad;
+    mp_obj_t filter_obj;
     synthio_block_slot_t mix;
+
+    biquad_filter_state filter_state;
 
     uint8_t bits_per_sample;
     bool samples_signed;

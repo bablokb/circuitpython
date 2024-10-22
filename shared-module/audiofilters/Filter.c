@@ -9,7 +9,7 @@
 #include "py/runtime.h"
 
 void common_hal_audiofilters_filter_construct(audiofilters_filter_obj_t *self,
-    mp_obj_t biquad, mp_obj_t mix,
+    mp_obj_t filter, mp_obj_t mix,
     uint32_t buffer_size, uint8_t bits_per_sample,
     bool samples_signed, uint8_t channel_count, uint32_t sample_rate) {
 
@@ -52,10 +52,11 @@ void common_hal_audiofilters_filter_construct(audiofilters_filter_obj_t *self,
 
     // The below section sets up the effect's starting values.
 
-    if (biquad != MP_OBJ_NULL) {
-        biquad = mp_const_none;
+    if (filter == MP_OBJ_NULL) {
+        filter = mp_const_none;
     }
-    synthio_biquad_filter_assign(biquad, &self->biquad);
+    synthio_biquad_filter_assign(&self->filter_state, filter);
+    self->filter_obj = filter;
 
     // If we did not receive a BlockInput we need to create a default float value
     if (mix == MP_OBJ_NULL) {
@@ -79,12 +80,13 @@ void common_hal_audiofilters_filter_deinit(audiofilters_filter_obj_t *self) {
     self->buffer[1] = NULL;
 }
 
-mp_obj_t common_hal_audiofilters_filter_get_biquad(audiofilters_filter_obj_t *self) {
-    return self->biquad.obj;
+mp_obj_t common_hal_audiofilters_filter_get_filter(audiofilters_filter_obj_t *self) {
+    return self->filter_obj;
 }
 
-void common_hal_audiofilters_filter_set_biquad(audiofilters_filter_obj_t *self, mp_obj_t arg) {
-    synthio_biquad_filter_assign(arg, &self->biquad);
+void common_hal_audiofilters_filter_set_filter(audiofilters_filter_obj_t *self, mp_obj_t arg) {
+    synthio_biquad_filter_assign(&self->filter_state, arg);
+    self->filter_obj = arg;
 }
 
 mp_obj_t common_hal_audiofilters_filter_get_mix(audiofilters_filter_obj_t *self) {
@@ -113,6 +115,8 @@ void audiofilters_filter_reset_buffer(audiofilters_filter_obj_t *self,
 
     memset(self->buffer[0], 0, self->buffer_len);
     memset(self->buffer[1], 0, self->buffer_len);
+
+    synthio_biquad_filter_reset(&self->filter_state);
 }
 
 bool common_hal_audiofilters_filter_get_playing(audiofilters_filter_obj_t *self) {

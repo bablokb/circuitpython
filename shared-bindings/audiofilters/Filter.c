@@ -23,7 +23,7 @@
 //|
 //|     def __init__(
 //|         self,
-//|         biquad: synthio.Biquad = None,
+//|         filter: synthio.Biquad = None,
 //|         mix: synthio.BlockInput = 1.0,
 //|         buffer_size: int = 512,
 //|         sample_rate: int = 8000,
@@ -38,7 +38,7 @@
 //|            The mix parameter allows you to change how much of the unchanged sample passes through to
 //|            the output to how much of the effect audio you hear as the output.
 //|
-//|         :param synthio.Biquad biquad: The normalized biquad filter object used to process the signal.
+//|         :param synthio.Biquad filter: The normalized biquad filter object used to process the signal.
 //|         :param synthio.BlockInput mix: The mix as a ratio of the sample (0.0) to the effect (1.0).
 //|         :param int buffer_size: The total size in bytes of each of the two playback buffers to use
 //|         :param int sample_rate: The sample rate to be used
@@ -56,7 +56,7 @@
 //|
 //|           audio = audiobusio.I2SOut(bit_clock=board.GP20, word_select=board.GP21, data=board.GP22)
 //|           synth = synthio.Synthesizer(channel_count=1, sample_rate=44100)
-//|           filter = audiofilters.Filter(biquad=synth.low_pass_filter(frequency=2000, q_factor=1.25), buffer_size=1024, channel_count=1, sample_rate=44100, mix=1.0)
+//|           filter = audiofilters.Filter(filter=synth.low_pass_filter(frequency=2000, Q=1.25), buffer_size=1024, channel_count=1, sample_rate=44100, mix=1.0)
 //|           filter.play(synth)
 //|           audio.play(filter)
 //|
@@ -68,9 +68,9 @@
 //|               time.sleep(5)"""
 //|         ...
 static mp_obj_t audiofilters_filter_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *all_args) {
-    enum { ARG_biquad, ARG_mix, ARG_buffer_size, ARG_sample_rate, ARG_bits_per_sample, ARG_samples_signed, ARG_channel_count, };
+    enum { ARG_filter, ARG_mix, ARG_buffer_size, ARG_sample_rate, ARG_bits_per_sample, ARG_samples_signed, ARG_channel_count, };
     static const mp_arg_t allowed_args[] = {
-        { MP_QSTR_biquad, MP_ARG_OBJ | MP_ARG_KW_ONLY,  {.u_obj = MP_OBJ_NULL} },
+        { MP_QSTR_filter, MP_ARG_OBJ | MP_ARG_KW_ONLY,  {.u_obj = MP_OBJ_NULL} },
         { MP_QSTR_mix, MP_ARG_OBJ | MP_ARG_KW_ONLY,  {.u_obj = MP_OBJ_NULL} },
         { MP_QSTR_buffer_size, MP_ARG_INT | MP_ARG_KW_ONLY, {.u_int = 512} },
         { MP_QSTR_sample_rate, MP_ARG_INT | MP_ARG_KW_ONLY, {.u_int = 8000} },
@@ -90,7 +90,7 @@ static mp_obj_t audiofilters_filter_make_new(const mp_obj_type_t *type, size_t n
     }
 
     audiofilters_filter_obj_t *self = mp_obj_malloc(audiofilters_filter_obj_t, &audiofilters_filter_type);
-    common_hal_audiofilters_filter_construct(self, args[ARG_biquad].u_obj, args[ARG_mix].u_obj, args[ARG_buffer_size].u_int, bits_per_sample, args[ARG_samples_signed].u_bool, channel_count, sample_rate);
+    common_hal_audiofilters_filter_construct(self, args[ARG_filter].u_obj, args[ARG_mix].u_obj, args[ARG_buffer_size].u_int, bits_per_sample, args[ARG_samples_signed].u_bool, channel_count, sample_rate);
 
     return MP_OBJ_FROM_PTR(self);
 }
@@ -128,31 +128,31 @@ static mp_obj_t audiofilters_filter_obj___exit__(size_t n_args, const mp_obj_t *
 static MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(audiofilters_filter___exit___obj, 4, 4, audiofilters_filter_obj___exit__);
 
 
-//|     biquad: synthio.Biquad
+//|     filter: synthio.Biquad
 //|     """The normalized biquad filter object used to process the signal."""
-static mp_obj_t audiofilters_filter_obj_get_biquad(mp_obj_t self_in) {
-    return common_hal_audiofilters_filter_get_biquad(self_in);
+static mp_obj_t audiofilters_filter_obj_get_filter(mp_obj_t self_in) {
+    return common_hal_audiofilters_filter_get_filter(self_in);
 }
-MP_DEFINE_CONST_FUN_OBJ_1(audiofilters_filter_get_biquad_obj, audiofilters_filter_obj_get_biquad);
+MP_DEFINE_CONST_FUN_OBJ_1(audiofilters_filter_get_filter_obj, audiofilters_filter_obj_get_filter);
 
-static mp_obj_t audiofilters_filter_obj_set_biquad(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
-    enum { ARG_biquad };
+static mp_obj_t audiofilters_filter_obj_set_filter(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
+    enum { ARG_filter };
     static const mp_arg_t allowed_args[] = {
-        { MP_QSTR_biquad,     MP_ARG_OBJ | MP_ARG_REQUIRED, {} },
+        { MP_QSTR_filter,     MP_ARG_OBJ | MP_ARG_REQUIRED, {} },
     };
     audiofilters_filter_obj_t *self = MP_OBJ_TO_PTR(pos_args[0]);
     mp_arg_val_t args[MP_ARRAY_SIZE(allowed_args)];
     mp_arg_parse_all(n_args - 1, pos_args + 1, kw_args, MP_ARRAY_SIZE(allowed_args), allowed_args, args);
 
-    common_hal_audiofilters_filter_set_biquad(self, args[ARG_biquad].u_obj);
+    common_hal_audiofilters_filter_set_filter(self, args[ARG_filter].u_obj);
 
     return mp_const_none;
 }
-MP_DEFINE_CONST_FUN_OBJ_KW(audiofilters_filter_set_biquad_obj, 1, audiofilters_filter_obj_set_biquad);
+MP_DEFINE_CONST_FUN_OBJ_KW(audiofilters_filter_set_filter_obj, 1, audiofilters_filter_obj_set_filter);
 
-MP_PROPERTY_GETSET(audiofilters_filter_biquad_obj,
-    (mp_obj_t)&audiofilters_filter_get_biquad_obj,
-    (mp_obj_t)&audiofilters_filter_set_biquad_obj);
+MP_PROPERTY_GETSET(audiofilters_filter_filter_obj,
+    (mp_obj_t)&audiofilters_filter_get_filter_obj,
+    (mp_obj_t)&audiofilters_filter_set_filter_obj);
 
 
 //|     mix: synthio.BlockInput
@@ -241,7 +241,7 @@ static const mp_rom_map_elem_t audiofilters_filter_locals_dict_table[] = {
 
     // Properties
     { MP_ROM_QSTR(MP_QSTR_playing), MP_ROM_PTR(&audiofilters_filter_playing_obj) },
-    { MP_ROM_QSTR(MP_QSTR_biquad), MP_ROM_PTR(&audiofilters_filter_biquad_obj) },
+    { MP_ROM_QSTR(MP_QSTR_filter), MP_ROM_PTR(&audiofilters_filter_filter_obj) },
     { MP_ROM_QSTR(MP_QSTR_mix), MP_ROM_PTR(&audiofilters_filter_mix_obj) },
 };
 static MP_DEFINE_CONST_DICT(audiofilters_filter_locals_dict, audiofilters_filter_locals_dict_table);
