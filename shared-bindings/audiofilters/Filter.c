@@ -23,7 +23,7 @@
 //|
 //|     def __init__(
 //|         self,
-//|         filter: synthio.Biquad = None,
+//|         filter: Optional[synthio.Biquad] = None,
 //|         mix: synthio.BlockInput = 1.0,
 //|         buffer_size: int = 512,
 //|         sample_rate: int = 8000,
@@ -38,7 +38,7 @@
 //|            The mix parameter allows you to change how much of the unchanged sample passes through to
 //|            the output to how much of the effect audio you hear as the output.
 //|
-//|         :param synthio.Biquad filter: The normalized biquad filter object used to process the signal.
+//|         :param Optional[synthio.Biquad] filter: The normalized biquad filter object used to process the signal.
 //|         :param synthio.BlockInput mix: The mix as a ratio of the sample (0.0) to the effect (1.0).
 //|         :param int buffer_size: The total size in bytes of each of the two playback buffers to use
 //|         :param int sample_rate: The sample rate to be used
@@ -128,7 +128,7 @@ static mp_obj_t audiofilters_filter_obj___exit__(size_t n_args, const mp_obj_t *
 static MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(audiofilters_filter___exit___obj, 4, 4, audiofilters_filter_obj___exit__);
 
 
-//|     filter: synthio.Biquad
+//|     filter: Optional[synthio.Biquad]
 //|     """The normalized biquad filter object used to process the signal."""
 static mp_obj_t audiofilters_filter_obj_get_filter(mp_obj_t self_in) {
     return common_hal_audiofilters_filter_get_filter(self_in);
