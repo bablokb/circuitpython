@@ -51,4 +51,7 @@ CONFIG_ESP_WIFI_STATIC_RX_BUFFER_NUM=4
 
 # end of Component config
 
+# Workaround for https://github.com/espressif/esp-idf/issues/14456
+CONFIG_ESP_SYSTEM_HW_STACK_GUARD=n
+
 # end of Espressif IoT Development Framework Configuration
