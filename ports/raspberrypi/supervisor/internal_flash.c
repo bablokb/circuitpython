@@ -51,7 +51,9 @@ static void save_psram_settings(void) {
     // We're about to invalidate the XIP cache, clean it first to commit any dirty writes to PSRAM
     uint8_t *maintenance_ptr = (uint8_t *)XIP_MAINTENANCE_BASE;
     for (int i = 1; i < 16 * 1024; i += 8) {
-        maintenance_ptr[i] = 0;
+        // Background info: https://forums.raspberrypi.com/viewtopic.php?t=378249
+        maintenance_ptr[i] = 0; // Clean
+        maintenance_ptr[i - 1] = 0; // Explicitly invalidate
     }
 
     m1_timing = qmi_hw->m[1].timing;
