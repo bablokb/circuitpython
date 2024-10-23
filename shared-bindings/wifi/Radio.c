@@ -732,8 +732,8 @@ MP_PROPERTY_GETTER(wifi_radio_stations_ap_obj,
 static mp_obj_t wifi_radio_start_dhcp_client(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
     enum { ARG_ipv4, ARG_ipv6 };
     static const mp_arg_t allowed_args[] = {
-        { MP_QSTR_ipv4, MP_ARG_KW_ONLY | MP_ARG_BOOL, { .u_bool = MP_ROM_TRUE } },
-        { MP_QSTR_ipv6, MP_ARG_KW_ONLY | MP_ARG_BOOL, { .u_bool = MP_ROM_FALSE } },
+        { MP_QSTR_ipv4, MP_ARG_KW_ONLY | MP_ARG_BOOL, { .u_bool = true } },
+        { MP_QSTR_ipv6, MP_ARG_KW_ONLY | MP_ARG_BOOL, { .u_bool = false } },
     };
 
     wifi_radio_obj_t *self = MP_OBJ_TO_PTR(pos_args[0]);
