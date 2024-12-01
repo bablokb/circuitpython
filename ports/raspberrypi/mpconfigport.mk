@@ -56,8 +56,6 @@ CIRCUITPY_TOUCHIO ?= 1
 endif
 
 ifeq ($(CHIP_VARIANT),RP2350)
-# This needs to be implemented.
-CIRCUITPY_ALARM = 0
 # Default PICODVI on because it doesn't require much code in RAM to talk to HSTX.
 CIRCUITPY_PICODVI ?= 1
 
