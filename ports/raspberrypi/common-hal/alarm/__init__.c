@@ -33,6 +33,10 @@
 #include "hardware/watchdog.h"
 #include "hardware/structs/watchdog.h"
 
+#if !PICO_RP2040
+#include "hardware/powman.h"
+#endif
+
 // XOSC shutdown
 #include "hardware/rtc.h"
 #include "hardware/pll.h"
@@ -168,10 +172,13 @@ mp_obj_t common_hal_alarm_light_sleep_until_alarms(size_t n_alarms, const mp_obj
         clocks_hw->sleep_en1 = RP_LIGHTSLEEP_EN1_MASK;
 
         // Enable System Control Block (SCB) deep sleep
-        uint save = scb_hw->scr;
-        scb_hw->scr = save | M0PLUS_SCR_SLEEPDEEP_BITS;
+        scb_hw->scr |= ARM_CPU_PREFIXED(SCR_SLEEPDEEP_BITS);
 
         __wfi();
+
+        // reset after wakeup
+        clocks_hw->sleep_en0 |= ~(0u);
+        clocks_hw->sleep_en1 |= ~(0u);
     }
 
     if (mp_hal_is_interrupted()) {
@@ -202,9 +209,11 @@ void NORETURN common_hal_alarm_enter_deep_sleep(void) {
         clocks_hw->sleep_en0 &= RP_LIGHTSLEEP_EN0_MASK_HARSH;
         clocks_hw->sleep_en1 = RP_LIGHTSLEEP_EN1_MASK_HARSH;
         // Enable System Control Block (SCB) deep sleep
-        uint save = scb_hw->scr;
-        scb_hw->scr = save | M0PLUS_SCR_SLEEPDEEP_BITS;
+        scb_hw->scr |= ARM_CPU_PREFIXED(SCR_SLEEPDEEP_BITS);
         __wfi();
+        // reset after wakeup
+        clocks_hw->sleep_en0 |= ~(0u);
+        clocks_hw->sleep_en1 |= ~(0u);
     } else {
         prepare_for_dormant_xosc();
         xosc_dormant();
@@ -253,4 +262,7 @@ static void prepare_for_dormant_xosc(void) {
         src_hz);
     pll_deinit(pll_sys);
     pll_deinit(pll_usb);
+#if PICO_RP2350
+    clock_stop(clk_hstx);
+#endif
 }
