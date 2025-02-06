@@ -15,13 +15,24 @@
 #include "hardware/gpio.h"
 
 #include "lib/cyw43-driver/src/cyw43.h"
+#include "pico/cyw43_arch.h"
 
 static int power_management_value = PM_DISABLED;
 
-void cyw43_enter_deep_sleep(void) {
-#define WL_REG_ON 23
-    gpio_set_dir(WL_REG_ON, GPIO_OUT);
-    gpio_put(WL_REG_ON, false);
+// called from common-hal/alarm/__init__.c
+void bindings_cyw43_power_down(void) {
+    cyw43_arch_deinit();
+    gpio_set_dir(CYW43_DEFAULT_PIN_WL_REG_ON, GPIO_OUT);
+    gpio_put(CYW43_DEFAULT_PIN_WL_REG_ON, false);
+}
+
+// called from supervisor/port.c and common-hal/alarm/__init__.c
+bool bindings_cyw43_power_up(void) {
+    gpio_set_dir(CYW43_DEFAULT_PIN_WL_REG_ON, GPIO_OUT);
+    gpio_put(CYW43_DEFAULT_PIN_WL_REG_ON, true);
+    // Change this as a placeholder as to how to init with country code.
+    // Default country code is CYW43_COUNTRY_WORLDWIDE)
+    return cyw43_arch_init_with_country(PICO_CYW43_ARCH_DEFAULT_COUNTRY_CODE);
 }
 
 void bindings_cyw43_wifi_enforce_pm(void) {
@@ -34,7 +45,6 @@ void bindings_cyw43_wifi_enforce_pm(void) {
 //|     Cannot be constructed at runtime, but may be the type of a pin object
 //|     in :py:mod:`board`. A `CywPin` can be used as a DigitalInOut, but not with other
 //|     peripherals such as `PWMOut`."""
-//|
 //|
 MP_DEFINE_CONST_OBJ_TYPE(
     cyw43_pin_type,
@@ -51,7 +61,6 @@ MP_DEFINE_CONST_OBJ_TYPE(
 //| """Performance power management mode where more power is used to increase performance"""
 //| PM_DISABLED: int
 //| """Disable power management and always use highest power mode. CircuitPython sets this value at reset time, because it provides the best connectivity reliability."""
-//|
 //|
 //| def set_power_management(value: int) -> None:
 //|     """Set the power management register
@@ -82,7 +91,6 @@ MP_DEFINE_CONST_OBJ_TYPE(
 //|     usage.
 //|     """
 //|
-//|
 static mp_obj_t cyw43_set_power_management(const mp_obj_t value_in) {
     mp_int_t value = mp_obj_get_int(value_in);
     power_management_value = value;
@@ -93,7 +101,6 @@ static MP_DEFINE_CONST_FUN_OBJ_1(cyw43_set_power_management_obj, cyw43_set_power
 
 //| def get_power_management() -> int:
 //|     """Retrieve the power management register"""
-//|
 //|
 static mp_obj_t cyw43_get_power_management() {
     return mp_obj_new_int(power_management_value);
