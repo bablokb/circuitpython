@@ -27,7 +27,6 @@
 #endif
 
 #if CIRCUITPY_WIFI
-#include "py/mphal.h"
 #include "common-hal/wifi/__init__.h"
 #endif
 
