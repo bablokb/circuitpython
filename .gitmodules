@@ -2,6 +2,9 @@
 #
 # SPDX-License-Identifier: MIT
 
+[submodule "frozen/circuitpython-esp32at"]
+	path = frozen/circuitpython-esp32at
+	url = https://github.com/bablokb/circuitpython-esp32at
 [submodule "lib/axtls"]
 	path = lib/axtls
 	url = https://github.com/micropython/axtls.git
@@ -411,6 +414,3 @@
 [submodule "ports/analog/msdk"]
 	path = ports/analog/msdk
 	url = https://github.com/analogdevicesinc/msdk.git
-[submodule "frozen/circuitpython-esp32at"]
-	path = frozen/circuitpython-esp32at
-	url = https://github.com/bablokb/circuitpython-esp32at
