@@ -10,3 +10,5 @@ CHIP_FAMILY = rp2
 EXTERNAL_FLASH_DEVICES = "W25Q128JVxQ"
 
 CIRCUITPY__EVE = 1
+
+FROZEN_MPY_DIRS += $(TOP)/frozen/circuitpython-esp32at
