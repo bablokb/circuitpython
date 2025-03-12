@@ -14,3 +14,4 @@ CIRCUITPY_ALARM = 0
 
 FROZEN_MPY_DIRS += $(TOP)/frozen/Adafruit_CircuitPython_HID
 FROZEN_MPY_DIRS += $(TOP)/frozen/Adafruit_CircuitPython_Register
+FROZEN_MPY_DIRS += $(TOP)/frozen/circuitpython-esp32at
