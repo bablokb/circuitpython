@@ -1,10 +1,8 @@
-CIRCUITPY_CREATOR_ID = 0x1C350000
-CIRCUITPY_CREATION_ID = 0x00000001
-
-# This board doesn't have USB by default, it
-# instead uses a CH340C USB-to-Serial chip
-CIRCUITPY_USB_DEVICE = 0
-CIRCUITPY_ESP_USB_SERIAL_JTAG = 0
+# USB_VID/USB_VID are fake
+USB_VID = 0x1C35
+USB_PID = 0x0001
+USB_PRODUCT = "Elecrow CrowPanel 4.2in E-Ink with ESP32-S3"
+USB_MANUFACTURER = "Elecrow"
 
 IDF_TARGET = esp32s3
 
