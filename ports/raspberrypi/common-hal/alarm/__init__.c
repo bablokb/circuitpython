@@ -42,6 +42,9 @@
 
 #ifdef PICO_RP2350
 #include "hardware/powman.h"
+#ifdef USE_POWMAN
+#include "hardware/structs/usb.h"
+#endif
 #endif
 
 #include "pico.h"
@@ -98,6 +101,16 @@ static inline void _sleep_run_from_xosc(void) {
 static inline void _sleep_run_from_lposc(void) {
     _sleep_run_from_dormant_source(DORMANT_SOURCE_LPOSC);
 }
+#ifdef USE_POWMAN
+static void _powman_disable_usb(void);
+static void _powman_init(void);
+static int _powman_power_off(void);
+static powman_power_state _off_state;
+static powman_power_state _on_state;
+static const bool _use_powman = true;
+#else
+static const bool _use_powman = false;
+#endif
 #endif
 
 static dormant_source_t _dormant_source;
@@ -290,8 +303,8 @@ static void _sleep_power_up(void) {
 //             PinAlarm  -> use dormant with gpio-wakeup
 //
 // The low-level implementation does not differentiate between light-sleep
-// and deep-sleep.
-static void _goto_sleep_or_dormant(void) {
+// and deep-sleep unless POWMAN is used.
+static void _goto_sleep_or_dormant(bool is_deep_sleep) {
     DEBUG_PRINT("_goto_sleep_or_dormant");
     bool timealarm_set = alarm_time_timealarm_is_set();
     _serial_connected = serial_connected();
@@ -321,12 +334,17 @@ static void _goto_sleep_or_dormant(void) {
     }
     _sleep_power_up();
     #else
-    _sleep_run_from_lposc();
-    if (timealarm_set) {
-        _sleep_goto_dormant_until();
+    if (_use_powman && is_deep_sleep) {
+        _powman_init();
+        _powman_power_off();
+    } else {
+        _sleep_run_from_lposc();
+        if (timealarm_set) {
+            _sleep_goto_dormant_until();
+        }
+        _sleep_go_dormant();
+        _sleep_power_up();
     }
-    _sleep_go_dormant();
-    _sleep_power_up();
     #endif
 }
 
@@ -379,6 +397,15 @@ static uint8_t _get_wakeup_cause(void) {
 // Set up light sleep or deep sleep alarms.
 static void _setup_sleep_alarms(bool deep_sleep, size_t n_alarms, const mp_obj_t *alarms) {
     DEBUG_PRINT("_setup_sleep_alarms (start)");
+    #ifdef PICO_RP2350
+    #ifdef USE_POWMAN
+    if (deep_sleep) {
+        powman_disable_all_wakeups();
+        powman_timer_disable_alarm();
+        powman_clear_alarm();
+    }
+    #endif
+    #endif
     alarm_pin_pinalarm_set_alarms(deep_sleep, n_alarms, alarms);
     alarm_time_timealarm_set_alarms(deep_sleep, n_alarms, alarms);
     DEBUG_PRINT("_setup_sleep_alarms (finished)");
@@ -438,7 +465,7 @@ mp_obj_t common_hal_alarm_light_sleep_until_alarms(size_t n_alarms, const mp_obj
             shared_alarm_save_wake_alarm(wake_alarm);
             break;
         }
-        _goto_sleep_or_dormant();
+        _goto_sleep_or_dormant(false);
     }
 
     if (mp_hal_is_interrupted()) {
@@ -458,7 +485,7 @@ void common_hal_alarm_set_deep_sleep_alarms(size_t n_alarms, const mp_obj_t *ala
 
 void NORETURN common_hal_alarm_enter_deep_sleep(void) {
 
-    _goto_sleep_or_dormant();
+    _goto_sleep_or_dormant(true);
 
     // Reset uses the watchdog. Use scratch registers to store wake reason
     watchdog_hw->scratch[RP_WKUP_SCRATCH_REG] = _get_wakeup_cause();
@@ -469,3 +496,75 @@ void NORETURN common_hal_alarm_enter_deep_sleep(void) {
 void common_hal_alarm_gc_collect(void) {
     gc_collect_ptr(shared_alarm_get_wake_alarm());
 }
+
+#ifdef PICO_RP2350
+#ifdef USE_POWMAN
+static void _powman_init() {
+    // Unlock the VREG control interface
+    hw_set_bits(&powman_hw->vreg_ctrl,
+                POWMAN_PASSWORD_BITS | POWMAN_VREG_CTRL_UNLOCK_BITS);
+    // Turn off USB PHY and apply pull downs on DP & DM
+    _powman_disable_usb();
+
+    // no need to start powman and set the time
+    // (already done in common-hal/rtc/RTC.c (aon_timer_start))
+
+    // Allow power down when debugger connected
+    powman_set_debug_power_request_ignored(true);
+
+    // Power states
+    powman_power_state P1_7 = POWMAN_POWER_STATE_NONE;
+
+    powman_power_state P0_3 = POWMAN_POWER_STATE_NONE;
+    P0_3 = powman_power_state_with_domain_on(P0_3,
+                                             POWMAN_POWER_DOMAIN_SWITCHED_CORE);
+    P0_3 = powman_power_state_with_domain_on(P0_3,
+                                             POWMAN_POWER_DOMAIN_XIP_CACHE);
+
+    _off_state = P1_7;
+    _on_state = P0_3;
+}
+
+// Initiate power off
+static int _powman_power_off(void) {
+    // Set power states
+    bool valid_state = powman_configure_wakeup_state(_off_state, _on_state);
+    if (!valid_state) {
+        return PICO_ERROR_INVALID_STATE;
+    }
+
+    // reboot to main
+    // TODO: reboot to wakeup-function?!
+    //       see: https://github.com/mamba2410/rp2350-powman-sleep
+    //            https://forums.raspberrypi.com/viewtopic.php?t=384176
+
+    powman_hw->boot[0] = 0;
+    powman_hw->boot[1] = 0;
+    powman_hw->boot[2] = 0;
+    powman_hw->boot[3] = 0;
+
+    // Switch to required power state
+    int rc = powman_set_power_state(_off_state);
+    if (rc != PICO_OK) {
+      // PICO_ERROR_PRECONDITION_NOT_MET == -14 -> pending pwrup req
+      // PICO_ERROR_INVALID_ARG == -5 -> invalid state
+      // PICO_ERROR_TIMEOUT = -2 -> pending pwrup req? oder waiting-bits
+      hard_assert(rc == PICO_OK);
+    }
+
+    // Power down
+    while (true) __wfi();
+}
+
+static void _powman_disable_usb() {
+    usb_hw->phy_direct = USB_USBPHY_DIRECT_TX_PD_BITS | USB_USBPHY_DIRECT_RX_PD_BITS | USB_USBPHY_DIRECT_DM_PULLDN_EN_BITS | USB_USBPHY_DIRECT_DP_PULLDN_EN_BITS;
+    usb_hw->phy_direct_override = USB_USBPHY_DIRECT_RX_DM_BITS | USB_USBPHY_DIRECT_RX_DP_BITS |          USB_USBPHY_DIRECT_RX_DD_BITS |
+        USB_USBPHY_DIRECT_OVERRIDE_TX_DIFFMODE_OVERRIDE_EN_BITS | USB_USBPHY_DIRECT_OVERRIDE_DM_PULLUP_OVERRIDE_EN_BITS | USB_USBPHY_DIRECT_OVERRIDE_TX_FSSLEW_OVERRIDE_EN_BITS |
+        USB_USBPHY_DIRECT_OVERRIDE_TX_PD_OVERRIDE_EN_BITS | USB_USBPHY_DIRECT_OVERRIDE_RX_PD_OVERRIDE_EN_BITS | USB_USBPHY_DIRECT_OVERRIDE_TX_DM_OVERRIDE_EN_BITS |
+        USB_USBPHY_DIRECT_OVERRIDE_TX_DP_OVERRIDE_EN_BITS | USB_USBPHY_DIRECT_OVERRIDE_TX_DM_OE_OVERRIDE_EN_BITS | USB_USBPHY_DIRECT_OVERRIDE_TX_DP_OE_OVERRIDE_EN_BITS |
+        USB_USBPHY_DIRECT_OVERRIDE_DM_PULLDN_EN_OVERRIDE_EN_BITS | USB_USBPHY_DIRECT_OVERRIDE_DP_PULLDN_EN_OVERRIDE_EN_BITS | USB_USBPHY_DIRECT_OVERRIDE_DP_PULLUP_EN_OVERRIDE_EN_BITS |
+        USB_USBPHY_DIRECT_OVERRIDE_DM_PULLUP_HISEL_OVERRIDE_EN_BITS | USB_USBPHY_DIRECT_OVERRIDE_DP_PULLUP_HISEL_OVERRIDE_EN_BITS;
+}
+
+#endif
+#endif

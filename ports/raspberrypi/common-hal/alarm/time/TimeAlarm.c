@@ -111,7 +111,7 @@ void alarm_time_timealarm_set_alarms(bool deep_sleep, size_t n_alarms, const mp_
     #ifdef PICO_RP2040
     aon_timer_enable_alarm(&t, &timer_callback, deep_sleep);
     #else
-    aon_timer_enable_alarm(&t, &timer_callback, true);
+    aon_timer_enable_alarm(&t, &timer_callback, true);  // this uses POWMAN_TIMER
     #endif
     woke_up = false;
 }

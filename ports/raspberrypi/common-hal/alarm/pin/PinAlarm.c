@@ -15,6 +15,23 @@
 #include "hardware/gpio.h"
 #include "hardware/structs/iobank0.h"
 
+#ifdef PICO_RP2350
+#include "hardware/powman.h"
+#endif
+
+#ifdef SLEEP_DEBUG
+#include <inttypes.h>
+#include "py/mpprint.h"
+#define DEBUG_PRINT(fmt, ...) ((void)mp_printf(&mp_plat_print, "DBG:%s:%04d: " fmt "\n", __FILE__, __LINE__,##__VA_ARGS__))
+#else
+#define DEBUG_PRINT(fmt, ...)((void)0)
+#endif
+
+#if USE_POWMAN
+#include "py/mphal.h"
+static int gpio_wakeup_nums_in_use = 0;  // instances 0-3 available
+#endif
+
 static bool woke_up;
 static uint64_t alarm_triggered_pins; // 36 actual pins
 static uint64_t alarm_reserved_pins; // 36 actual pins
@@ -23,6 +40,7 @@ static bool _not_yet_deep_sleeping = false;
 #define GPIO_IRQ_ALL_EVENTS 0x15u
 
 static void gpio_callback(uint gpio, uint32_t events) {
+    #if !USE_POWMAN
     alarm_triggered_pins |= (1 << gpio);
     woke_up = true;
 
@@ -37,6 +55,7 @@ static void gpio_callback(uint gpio, uint32_t events) {
         gpio_set_irq_enabled(gpio, events, false);
         gpio_set_dormant_irq_enabled(gpio, events, false);
     }
+    #endif
 }
 
 void alarm_pin_pinalarm_entering_deep_sleep() {
@@ -114,6 +133,10 @@ void alarm_pin_pinalarm_reset(void) {
         }
     }
     alarm_reserved_pins = 0;
+    #if USE_POWMAN
+    powman_disable_all_wakeups();
+    gpio_wakeup_nums_in_use = 0;
+    #endif
 }
 
 void alarm_pin_pinalarm_set_alarms(bool deep_sleep, size_t n_alarms, const mp_obj_t *alarms) {
@@ -122,6 +145,7 @@ void alarm_pin_pinalarm_set_alarms(bool deep_sleep, size_t n_alarms, const mp_ob
             alarm_pin_pinalarm_obj_t *alarm = MP_OBJ_TO_PTR(alarms[i]);
 
             gpio_init(alarm->pin->number);
+            gpio_set_dir(alarm->pin->number, GPIO_IN);
             if (alarm->pull) {
                 // If value is high, the pullup should be off, and vice versa
                 gpio_set_pulls(alarm->pin->number, !alarm->value, alarm->value);
@@ -129,7 +153,28 @@ void alarm_pin_pinalarm_set_alarms(bool deep_sleep, size_t n_alarms, const mp_ob
                 // Clear in case the pulls are already on
                 gpio_set_pulls(alarm->pin->number, false, false);
             }
-            gpio_set_dir(alarm->pin->number, GPIO_IN);
+            #if USE_POWMAN
+            int gpio_wakeup_num = 0;
+            if (deep_sleep) {
+                if (gpio_wakeup_nums_in_use < 4) {
+                    gpio_wakeup_num = gpio_wakeup_nums_in_use++;
+                } else {
+                    // ignore for now, maybe raise exception??
+                }
+                if (gpio_get(alarm->pin->number) == alarm->value) {
+                    while(gpio_get(alarm->pin->number) == alarm->value) {
+                        mp_hal_delay_ms(10);
+                    }
+                }
+                DEBUG_PRINT("enabling PowMan GPIO-wakeup on GPIO %d",alarm->pin->number);
+                DEBUG_PRINT("using wakeup-num: %d", gpio_wakeup_num);
+                powman_enable_gpio_wakeup(gpio_wakeup_num, alarm->pin->number,
+                                          alarm->edge, alarm->value);
+                _not_yet_deep_sleeping = true;
+                continue;
+            }
+            #endif
+
             // Don't reset at end of VM (instead, pinalarm_reset will reset before next VM)
             common_hal_never_reset_pin(alarm->pin);
             alarm_reserved_pins |= (1 << alarm->pin->number);
