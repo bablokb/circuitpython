@@ -530,6 +530,7 @@ static int _powman_power_off(void) {
     // Set power states
     bool valid_state = powman_configure_wakeup_state(_off_state, _on_state);
     if (!valid_state) {
+        SLEEP(500);
         return PICO_ERROR_INVALID_STATE;
     }
 
@@ -545,17 +546,18 @@ static int _powman_power_off(void) {
 
     // Switch to required power state
     int rc = powman_set_power_state(_off_state);
-    if (rc == PICO_PRECONDITION_NOT_MET) {
+    if (rc == PICO_ERROR_PRECONDITION_NOT_MET) {
         // PICO_ERROR_PRECONDITION_NOT_MET == -14 -> pending pwrup req
-        SLEEP(1000);
+        SLEEP(3000);
     } else if (rc == PICO_ERROR_TIMEOUT) {
         // PICO_ERROR_TIMEOUT = -2 -> pending pwrup req? oder waiting-bits
         SLEEP(2000);
     } else if (rc == PICO_ERROR_INVALID_ARG) {
         // PICO_ERROR_INVALID_ARG == -5 -> invalid state
         SLEEP(5000);
+    }
     if (rc != PICO_OK) {
-      return rc;                    // note: this will cause reset in common_hal_alarm_enter_deep_sleep()
+      return rc;                           // note: this will cause reset
       //hard_assert(rc == PICO_OK);
     }
 
