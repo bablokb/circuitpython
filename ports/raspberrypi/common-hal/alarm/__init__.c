@@ -304,6 +304,7 @@ static void _sleep_power_up(void) {
 //
 // The low-level implementation does not differentiate between light-sleep
 // and deep-sleep unless POWMAN is used.
+
 static void _goto_sleep_or_dormant(bool is_deep_sleep) {
     DEBUG_PRINT("_goto_sleep_or_dormant");
     bool timealarm_set = alarm_time_timealarm_is_set();
@@ -317,6 +318,7 @@ static void _goto_sleep_or_dormant(bool is_deep_sleep) {
 
     // when serial is connected, only fake sleep/dormant
     if (_serial_connected) {
+        SLEEP(2500);
         __wfi();
         return;
     }
@@ -335,6 +337,7 @@ static void _goto_sleep_or_dormant(bool is_deep_sleep) {
     _sleep_power_up();
     #else
     if (_use_powman && is_deep_sleep) {
+        alarm_pin_powman_set_gpio_wakeup();
         _powman_init();
         _powman_power_off();
     } else {
@@ -557,7 +560,8 @@ static int _powman_power_off(void) {
         SLEEP(5000);
     }
     if (rc != PICO_OK) {
-      return rc;                           // note: this will cause reset
+        SLEEP(-100*rc);
+        return rc;                           // note: this will cause reset
       //hard_assert(rc == PICO_OK);
     }
 

@@ -27,3 +27,6 @@ void alarm_pin_pinalarm_light_reset(void);
 void alarm_pin_pinalarm_set_alarms(bool deep_sleep, size_t n_alarms, const mp_obj_t *alarms);
 bool alarm_pin_pinalarm_woke_this_cycle(void);
 void alarm_pin_pinalarm_entering_deep_sleep(void);
+#if USE_POWMAN
+void alarm_pin_powman_set_gpio_wakeup(void);
+#endif
