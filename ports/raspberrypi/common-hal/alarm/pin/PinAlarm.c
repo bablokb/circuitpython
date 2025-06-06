@@ -27,7 +27,7 @@
 #define DEBUG_PRINT(fmt, ...)((void)0)
 #endif
 
-#if USE_POWMAN
+#if CIRCUITPY_POWMAN
 #include "py/mphal.h"
 #define POWMAN_MAX_WAKEUP_SLOTS 4
 static int _powman_wakeup_slots = 0;  // instances 0-3 available
@@ -139,14 +139,14 @@ void alarm_pin_pinalarm_reset(void) {
         }
     }
     alarm_reserved_pins = 0;
-    #if USE_POWMAN
+    #if CIRCUITPY_POWMAN
     powman_disable_all_wakeups();
     _powman_wakeup_slots = 0;
     #endif
 }
 
 void alarm_pin_pinalarm_set_alarms(bool deep_sleep, size_t n_alarms, const mp_obj_t *alarms) {
-    #if USE_POWMAN
+    #if CIRCUITPY_POWMAN
     int wakeup_slot = 0;
     powman_gpio_wakeup_data *gpio_info;
     #endif
@@ -154,7 +154,7 @@ void alarm_pin_pinalarm_set_alarms(bool deep_sleep, size_t n_alarms, const mp_ob
         if (mp_obj_is_type(alarms[i], &alarm_pin_pinalarm_type)) {
             alarm_pin_pinalarm_obj_t *alarm = MP_OBJ_TO_PTR(alarms[i]);
 
-            #if USE_POWMAN
+            #if CIRCUITPY_POWMAN
             if (deep_sleep) {
                if (_powman_wakeup_slots < POWMAN_MAX_WAKEUP_SLOTS) {
                    wakeup_slot = _powman_wakeup_slots++;
@@ -208,7 +208,7 @@ void alarm_pin_pinalarm_set_alarms(bool deep_sleep, size_t n_alarms, const mp_ob
     }
 }
 
-#if USE_POWMAN
+#if CIRCUITPY_POWMAN
 void alarm_pin_powman_set_gpio_wakeup(void) {
     powman_gpio_wakeup_data gpio_info;
     for (int i=0; i<_powman_wakeup_slots; ++i) {
