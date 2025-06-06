@@ -42,7 +42,7 @@
 
 #ifdef PICO_RP2350
 #include "hardware/powman.h"
-#ifdef USE_POWMAN
+#ifdef CIRCUITPY_POWMAN
 #include "hardware/structs/usb.h"
 #endif
 #endif
@@ -101,7 +101,7 @@ static inline void _sleep_run_from_xosc(void) {
 static inline void _sleep_run_from_lposc(void) {
     _sleep_run_from_dormant_source(DORMANT_SOURCE_LPOSC);
 }
-#ifdef USE_POWMAN
+#ifdef CIRCUITPY_POWMAN
 static void _powman_disable_usb(void);
 static void _powman_init(void);
 static int _powman_power_off(void);
@@ -401,7 +401,7 @@ static uint8_t _get_wakeup_cause(void) {
 static void _setup_sleep_alarms(bool deep_sleep, size_t n_alarms, const mp_obj_t *alarms) {
     DEBUG_PRINT("_setup_sleep_alarms (start)");
     #ifdef PICO_RP2350
-    #ifdef USE_POWMAN
+    #ifdef CIRCUITPY_POWMAN
     if (deep_sleep) {
         powman_disable_all_wakeups();
         powman_timer_disable_alarm();
@@ -501,7 +501,7 @@ void common_hal_alarm_gc_collect(void) {
 }
 
 #ifdef PICO_RP2350
-#ifdef USE_POWMAN
+#ifdef CIRCUITPY_POWMAN
 static void _powman_init() {
     // Unlock the VREG control interface
     hw_set_bits(&powman_hw->vreg_ctrl,
