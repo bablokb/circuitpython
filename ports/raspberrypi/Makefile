@@ -448,6 +448,10 @@ INC += \
 
 CFLAGS += -DPICO_RP2350=1
 
+ifeq ($(CIRCUITPY_POWMAN), 1)
+CFLAGS += -DCIRCUITPY_POWMAN
+endif
+
 SRC_SDK_CHIP_VARIANT := \
 	src/rp2_common/hardware_powman/powman.c \
 
