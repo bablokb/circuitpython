@@ -29,8 +29,8 @@
 
 #if CIRCUITPY_POWMAN
 #include "py/mphal.h"
-#define POWMAN_MAX_WAKEUP_SLOTS 4
-static int _powman_wakeup_slots = 0;  // instances 0-3 available
+#define POWMAN_MAX_WAKEUP_SLOTS (count_of(powman_hw->pwrup))
+static unsigned _powman_wakeup_slots = 0;  // instances 0-3 available
 typedef struct {
     uint32_t pin_number;
     bool edge;
@@ -211,7 +211,7 @@ void alarm_pin_pinalarm_set_alarms(bool deep_sleep, size_t n_alarms, const mp_ob
 #if CIRCUITPY_POWMAN
 void alarm_pin_powman_set_gpio_wakeup(void) {
     powman_gpio_wakeup_data gpio_info;
-    for (int i=0; i<_powman_wakeup_slots; ++i) {
+    for (unsigned i=0; i<_powman_wakeup_slots; ++i) {
         gpio_info = _powman_gpio_data[i];
         gpio_deinit(gpio_info.pin_number);
         gpio_init(gpio_info.pin_number);
