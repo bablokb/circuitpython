@@ -74,7 +74,7 @@ CIRCUITPY_CYW43_INIT_DELAY ?= 0
 CIRCUITPY_AUDIOEFFECTS ?= 1
 
 # use experimental powman-implementation for deep-sleep
-CIRCUITPY_POWMAN ?= 1
+CIRCUITPY_POWMAN ?= 0
 endif
 
 INTERNAL_LIBM = 1
