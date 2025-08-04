@@ -308,7 +308,11 @@ static void _sleep_power_up(void) {
 static void _goto_sleep_or_dormant(bool is_deep_sleep) {
     DEBUG_PRINT("_goto_sleep_or_dormant");
     bool timealarm_set = alarm_time_timealarm_is_set();
+    #ifdef SLEEP_DEBUG
+    _serial_connected = false;
+    #else
     _serial_connected = serial_connected();
+    #endif
     DEBUG_PRINT("time-alarm: %s", timealarm_set ? "true": "false");
     DEBUG_PRINT("serial: %s", _serial_connected ? "true": "false");
     SLEEP(10);
@@ -378,6 +382,12 @@ void alarm_reset(void) {
 }
 
 static uint8_t _get_wakeup_cause(void) {
+    #ifdef CIRCUITPY_POWMAN
+    DEBUG_PRINT("_get_wakeup_cause");
+    SLEEP(10);
+    DEBUG_PRINT("LAST_SWCORE_PWRUP: %d",powman_hw->last_swcore_pwrup);
+    SLEEP(10);
+    #else
     // First check if the modules remember what last woke up
     if (alarm_pin_pinalarm_woke_this_cycle()) {
         DEBUG_PRINT("_get_wakeup_cause: pin-alarm");
@@ -394,6 +404,7 @@ static uint8_t _get_wakeup_cause(void) {
     if (watchdog_hw->scratch[RP_WKUP_SCRATCH_REG] != RP_SLEEP_WAKEUP_UNDEF) {
         return watchdog_hw->scratch[RP_WKUP_SCRATCH_REG];
     }
+    #endif
     return RP_SLEEP_WAKEUP_UNDEF;
 }
 
