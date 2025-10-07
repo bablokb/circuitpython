@@ -25,11 +25,8 @@
  */
 
 #include "supervisor/board.h"
-
 #include "mpconfigboard.h"
-#include "common-hal/paralleldisplay/ParallelBus.h"
 #include "shared-module/displayio/__init__.h"
-#include "supervisor/shared/board.h"
 
 #define DELAY 0x80
 
@@ -97,9 +94,9 @@ uint8_t display_init_sequence[] = {
 
 
 void board_init(void) {
-    paralleldisplay_parallelbus_obj_t *bus = &allocate_display_bus()->parallel_bus;
-    bus->base.type = &paralleldisplay_parallelbus_type;
-    common_hal_paralleldisplay_parallelbus_construct(bus,
+    paralleldisplaybus_parallelbus_obj_t *bus = &allocate_display_bus()->parallel_bus;
+    bus->base.type = &paralleldisplaybus_parallelbus_type;
+    common_hal_paralleldisplaybus_parallelbus_construct(bus,
         &pin_GPIO14, // Data0
         &pin_GPIO11, // Command or data
         &pin_GPIO10, // Chip select
@@ -108,9 +105,9 @@ void board_init(void) {
         NULL, // Reset
         2500000); // Frequency (not fast enough to hit 60Hz, but seems to avoid the ghosting issue)
 
-    displayio_display_obj_t *display = &allocate_display()->display;
-    display->base.type = &displayio_display_type;
-    common_hal_displayio_display_construct(display,
+    busdisplay_busdisplay_obj_t *display = &allocate_display()->display;
+    display->base.type = &busdisplay_busdisplay_type;
+    common_hal_busdisplay_busdisplay_construct(display,
         bus,
         320, // Width
         240, // Height
@@ -138,16 +135,5 @@ void board_init(void) {
         true, // backlight_on_high
         false, // SH1107_addressing
         250); // backlight pwm frequency (highest that will result 0.01 displaying an image)
-    common_hal_never_reset_pin(&pin_GPIO2); // backlight pin
-}
-
-bool board_requests_safe_mode(void) {
-    return false;
-}
-
-void reset_board(void) {
-}
-
-void board_deinit(void) {
-    common_hal_displayio_release_displays();
+    //common_hal_never_reset_pin(&pin_GPIO2); // backlight pin
 }
