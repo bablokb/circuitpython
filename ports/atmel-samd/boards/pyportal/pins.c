@@ -8,6 +8,7 @@
 
 #include "supervisor/board.h"
 #include "shared-module/displayio/__init__.h"
+#include "pyportal_shared.h"
 
 // This mapping only includes functional names because pins broken
 // out on connectors are labeled with their MCU name available from
@@ -65,7 +66,8 @@ static const mp_rom_map_elem_t board_module_globals_table[] = {
     { MP_OBJ_NEW_QSTR(MP_QSTR_ESP_CS), MP_ROM_PTR(&pin_PB14) },
     { MP_OBJ_NEW_QSTR(MP_QSTR_ESP_GPIO0), MP_ROM_PTR(&pin_PB15) },
     { MP_OBJ_NEW_QSTR(MP_QSTR_ESP_BUSY), MP_ROM_PTR(&pin_PB16) },
-    { MP_OBJ_NEW_QSTR(MP_QSTR_ESP_RESET), MP_ROM_PTR(&pin_PB17) },
+    //{ MP_OBJ_NEW_QSTR(MP_QSTR_ESP_RESET), MP_ROM_PTR(&pin_PB17) },
+    { MP_ROM_QSTR(MP_QSTR_ESP_RESET), MP_ROM_PTR(&esp_enable_pin_obj)}, // PB17
     { MP_OBJ_NEW_QSTR(MP_QSTR_ESP_RTS), MP_ROM_PTR(&pin_PA15) },
     { MP_OBJ_NEW_QSTR(MP_QSTR_ESP_TX), MP_ROM_PTR(&pin_PB12) },
     { MP_OBJ_NEW_QSTR(MP_QSTR_ESP_RX), MP_ROM_PTR(&pin_PB13) },
