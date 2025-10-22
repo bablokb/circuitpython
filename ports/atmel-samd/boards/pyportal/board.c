@@ -11,6 +11,10 @@
 #include "shared-module/displayio/__init__.h"
 #include "shared-module/displayio/mipi_constants.h"
 
+#include "pyportal_shared.h"
+
+digitalio_digitalinout_obj_t esp_enable_pin_obj;
+
 #define DELAY 0x80
 
 uint8_t display_init_sequence[] = {
@@ -41,6 +45,15 @@ uint8_t display_init_sequence[] = {
 };
 
 void board_init(void) {
+    // Drive the ESP_RESET pin high so the co-processor is active
+    esp_enable_pin_obj.base.type = &digitalio_digitalinout_type;
+    common_hal_digitalio_digitalinout_construct(
+        &esp_enable_pin_obj, &pin_PB17);
+    common_hal_digitalio_digitalinout_switch_to_output(
+        &esp_enable_pin_obj, true, DRIVE_MODE_PUSH_PULL);
+    // Never reset
+    common_hal_digitalio_digitalinout_never_reset(&esp_enable_pin_obj);
+
     paralleldisplaybus_parallelbus_obj_t *bus = &allocate_display_bus()->parallel_bus;
     bus->base.type = &paralleldisplaybus_parallelbus_type;
     common_hal_paralleldisplaybus_parallelbus_construct(bus,
