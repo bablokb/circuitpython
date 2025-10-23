@@ -11,4 +11,4 @@ EXTERNAL_FLASH_DEVICES = "W25Q64JVxQ, GD25Q64C"
 LONGINT_IMPL = MPZ
 
 # Include these Python libraries in firmware.
-#FROZEN_MPY_DIRS += $(TOP)/frozen/circuitpython-esp32at
+FROZEN_MPY_DIRS += $(TOP)/frozen/circuitpython-esp32at
