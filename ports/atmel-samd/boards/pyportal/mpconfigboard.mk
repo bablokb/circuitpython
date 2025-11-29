@@ -12,3 +12,4 @@ LONGINT_IMPL = MPZ
 
 # Include these Python libraries in firmware.
 FROZEN_MPY_DIRS += $(TOP)/frozen/circuitpython-esp32at
+FROZEN_MPY_DIRS += $(TOP)/frozen/Adafruit_CircuitPython_NeoPixel
